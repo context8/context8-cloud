@@ -11,10 +11,41 @@ export interface Library {
 }
 
 export interface ApiKey {
+  id: string;
   name: string;
-  key: string;
-  created: string;
-  lastUsed: string;
+  createdAt?: string;
 }
 
 export type View = 'home' | 'dashboard';
+
+export interface SolutionInput {
+  title: string;
+  errorMessage: string;
+  errorType: string;
+  context: string;
+  rootCause: string;
+  solution: string;
+  tags: string;
+}
+
+export interface Solution {
+  id: string;
+  title: string;
+  errorType: string;
+  tags: string[];
+  createdAt: string;
+  errorMessage: string;
+  context: string;
+  rootCause: string;
+  solution: string;
+  projectPath?: string | null;
+}
+
+export interface SearchResult {
+  id: string;
+  title: string;
+  errorType: string;
+  tags: string[];
+  createdAt: string;
+  preview: string;
+}

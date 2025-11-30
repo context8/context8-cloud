@@ -1,148 +1,458 @@
-import React from 'react';
-import { API_KEYS, CURL_SNIPPET } from '../constants';
-import { Copy, Trash2, Plus, Search, FileText } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { API_BASE } from '../constants';
+import { Copy, Plus, Search, FileText, Mail, KeyRound, Loader2, RefreshCcw } from 'lucide-react';
+import { ApiKey, SearchResult, Solution, SolutionInput } from '../types';
 
-export const Dashboard: React.FC = () => {
+type SessionState = {
+  session: { token: string; email: string } | null;
+  setSession: (s: { token: string; email: string }) => void;
+  apiKey: string | null;
+  setApiKey: (k: string | null) => void;
+};
+
+type Props = {
+  sessionState: SessionState;
+};
+
+type Status = { kind: 'idle' | 'ok' | 'error' | 'loading'; message?: string };
+
+const authHeaders = (token?: string | null, apiKey?: string | null) => {
+  if (apiKey) return { 'X-API-Key': apiKey };
+  if (token) return { Authorization: `Bearer ${token}` };
+  return {};
+};
+
+export const Dashboard: React.FC<Props> = ({ sessionState }) => {
+  const { session, setSession, apiKey, setApiKey } = sessionState;
+  const [email, setEmail] = useState(session?.email ?? '');
+  const [code, setCode] = useState('');
+  const [sendStatus, setSendStatus] = useState<Status>({ kind: 'idle' });
+  const [verifyStatus, setVerifyStatus] = useState<Status>({ kind: 'idle' });
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [apiKeyName, setApiKeyName] = useState('default');
+  const [solutions, setSolutions] = useState<Solution[]>([]);
+  const [solutionInput, setSolutionInput] = useState<SolutionInput>({
+    title: '',
+    errorMessage: '',
+    errorType: 'runtime',
+    context: '',
+    rootCause: '',
+    solution: '',
+    tags: '',
+  });
+  const [solutionStatus, setSolutionStatus] = useState<Status>({ kind: 'idle' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchStatus, setSearchStatus] = useState<Status>({ kind: 'idle' });
+
+  const token = session?.token;
+
+  useEffect(() => {
+    if (session?.token) {
+      void fetchApiKeys();
+      void fetchSolutions();
+    }
+  }, [session?.token]);
+
+  const fetchApiKeys = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/apikeys`, {
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setApiKeys(data || []);
+    } catch (e: any) {
+      console.error('list apikeys', e);
+    }
+  };
+
+  const fetchSolutions = async () => {
+    if (!token && !apiKey) return;
+    try {
+      const res = await fetch(`${API_BASE}/solutions?limit=50`, {
+        headers: { ...authHeaders(token, apiKey) },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSolutions(data || []);
+    } catch (e) {
+      console.error('list solutions', e);
+    }
+  };
+
+  const sendCode = async () => {
+    if (!email) return;
+    setSendStatus({ kind: 'loading' });
+    try {
+      const res = await fetch(`${API_BASE}/auth/email/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setSendStatus({ kind: 'ok', message: '验证码已发送' });
+    } catch (e: any) {
+      setSendStatus({ kind: 'error', message: e?.message || '发送失败' });
+    }
+  };
+
+  const verifyCode = async () => {
+    if (!email || !code) return;
+    setVerifyStatus({ kind: 'loading' });
+    try {
+      const res = await fetch(`${API_BASE}/auth/email/verify-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSession({ token: data.token, email: data.user.email });
+      localStorage.setItem('ctx8_token', data.token);
+      localStorage.setItem('ctx8_email', data.user.email);
+      setVerifyStatus({ kind: 'ok', message: '登录成功' });
+      setCode('');
+      void fetchApiKeys();
+      void fetchSolutions();
+    } catch (e: any) {
+      setVerifyStatus({ kind: 'error', message: e?.message || '校验失败' });
+    }
+  };
+
+  const createApiKey = async () => {
+    if (!token) return;
+    setVerifyStatus({ kind: 'loading', message: '创建 API Key...' });
+    try {
+      const res = await fetch(`${API_BASE}/apikeys?name=${encodeURIComponent(apiKeyName || 'default')}`, {
+        method: 'POST',
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setApiKey(data.apiKey);
+      localStorage.setItem('ctx8_apikey', data.apiKey);
+      setVerifyStatus({ kind: 'ok', message: 'API Key 已创建' });
+      await fetchApiKeys();
+    } catch (e: any) {
+      setVerifyStatus({ kind: 'error', message: e?.message || '创建失败' });
+    }
+  };
+
+  const saveSolution = async () => {
+    if (!token && !apiKey) {
+      setSolutionStatus({ kind: 'error', message: '需要先登录或设置 API Key' });
+      return;
+    }
+    if (!solutionInput.title || !solutionInput.errorMessage || !solutionInput.context || !solutionInput.rootCause || !solutionInput.solution) {
+      setSolutionStatus({ kind: 'error', message: '请填写必填字段' });
+      return;
+    }
+    setSolutionStatus({ kind: 'loading' });
+    try {
+      const payload = {
+        title: solutionInput.title,
+        errorMessage: solutionInput.errorMessage,
+        errorType: solutionInput.errorType || 'runtime',
+        context: solutionInput.context,
+        rootCause: solutionInput.rootCause,
+        solution: solutionInput.solution,
+        tags: solutionInput.tags ? solutionInput.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      };
+      const res = await fetch(`${API_BASE}/solutions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders(token, apiKey) },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setSolutionStatus({ kind: 'ok', message: '已保存' });
+      setSolutionInput({ title: '', errorMessage: '', errorType: 'runtime', context: '', rootCause: '', solution: '', tags: '' });
+      await fetchSolutions();
+    } catch (e: any) {
+      setSolutionStatus({ kind: 'error', message: e?.message || '保存失败' });
+    }
+  };
+
+  const runSearch = async () => {
+    if (!token && !apiKey) {
+      setSearchStatus({ kind: 'error', message: '需要先登录或设置 API Key' });
+      return;
+    }
+    if (!searchQuery) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchStatus({ kind: 'loading' });
+    try {
+      const res = await fetch(`${API_BASE}/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders(token, apiKey) },
+        body: JSON.stringify({ query: searchQuery, limit: 10, offset: 0 }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSearchResults(data.results || []);
+      setSearchStatus({ kind: 'ok', message: `共 ${data.total} 条` });
+    } catch (e: any) {
+      setSearchStatus({ kind: 'error', message: e?.message || '搜索失败' });
+    }
+  };
+
+  const currentAuth = useMemo(() => {
+    if (apiKey) return `X-API-Key ${apiKey.slice(0, 8)}...`;
+    if (token) return 'Bearer (JWT 已保存)';
+    return '未登录';
+  }, [apiKey, token]);
+
   return (
     <div className="w-full flex flex-col gap-8">
-      {/* Dashboard Tabs */}
-      <div className="w-full flex justify-center border-b border-gray-200">
-        <div className="flex gap-8">
-          <button className="pb-3 text-emerald-600 font-medium border-b-2 border-emerald-600 text-sm">Overview</button>
-          <button className="pb-3 text-gray-500 font-medium hover:text-gray-800 transition-colors text-sm">Solutions</button>
-          <button className="pb-3 text-gray-500 font-medium hover:text-gray-800 transition-colors text-sm">Settings</button>
-          <button className="pb-3 text-gray-500 font-medium hover:text-gray-800 transition-colors text-sm">Export</button>
+      {/* API Base */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
+        <div>
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">API Base</div>
+          <div className="text-gray-900 font-mono text-sm mt-1">{API_BASE}</div>
+          <div className="text-xs text-gray-500 mt-1">Auth: {currentAuth}</div>
         </div>
+        <button className="text-gray-400 hover:text-emerald-600" onClick={() => navigator.clipboard.writeText(API_BASE)}>
+          <Copy size={16} />
+        </button>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: 'TOTAL SOLUTIONS', value: '0' },
-          { label: 'SEARCH REQUESTS', value: '0' },
-          { label: 'SOLUTIONS SAVED', value: '0' },
-          { label: 'SOLUTIONS RETRIEVED', value: '0' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-2">
-            <span className="text-xs font-semibold text-gray-400 tracking-wider uppercase">{stat.label}</span>
-            <span className="text-3xl font-medium text-gray-900">{stat.value}</span>
+      {/* Auth section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Mail size={16} className="text-emerald-600" />
+            <h2 className="text-lg font-semibold text-gray-900">邮箱验证码登录</h2>
           </div>
-        ))}
-      </div>
-
-      {/* Connect Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Connect</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            <a href="#" className="underline decoration-gray-300 hover:text-gray-900">Check the docs</a> for installation
-          </p>
-        </div>
-
-        <div className="space-y-4 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
-          <div className="grid grid-cols-12 items-center gap-4">
-            <label className="col-span-12 md:col-span-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">MCP URL</label>
-            <div className="col-span-1 flex items-center justify-center text-gray-300">:</div>
-            <div className="col-span-11 md:col-span-9 flex items-center justify-between group">
-              <code className="text-sm text-gray-800 font-mono bg-transparent">mcp.context8.com/mcp</code>
-              <button className="text-gray-400 hover:text-emerald-600 transition-colors opacity-0 group-hover:opacity-100">
-                <Copy size={16} />
-              </button>
-            </div>
+          <div className="space-y-3">
+            <label className="text-sm text-gray-700 font-medium">邮箱</label>
+            <input value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm" placeholder="you@example.com" />
+            <button
+              onClick={sendCode}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
+            >
+              {sendStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
+              发送验证码
+            </button>
+            {sendStatus.message && <p className={`text-sm ${sendStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{sendStatus.message}</p>}
           </div>
-          <div className="h-px bg-gray-200 w-full" />
-           <div className="grid grid-cols-12 items-center gap-4">
-            <label className="col-span-12 md:col-span-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">API URL</label>
-            <div className="col-span-1 flex items-center justify-center text-gray-300">:</div>
-            <div className="col-span-11 md:col-span-9 flex items-center justify-between group">
-              <code className="text-sm text-gray-800 font-mono bg-transparent">context8.com/api/v1</code>
-              <button className="text-gray-400 hover:text-emerald-600 transition-colors opacity-0 group-hover:opacity-100">
-                <Copy size={16} />
-              </button>
-            </div>
+          <div className="space-y-3">
+            <label className="text-sm text-gray-700 font-medium">验证码</label>
+            <input value={code} onChange={e => setCode(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm" placeholder="6 digits" />
+            <button
+              onClick={verifyCode}
+              className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
+            >
+              {verifyStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
+              校验并登录
+            </button>
+            {verifyStatus.message && <p className={`text-sm ${verifyStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{verifyStatus.message}</p>}
+            {token && (
+              <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-md p-3 mt-2">
+                JWT 已保存，调用时附上 `Authorization: Bearer ...`
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* API Keys Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <KeyRound size={16} className="text-emerald-600" />
             <h2 className="text-lg font-semibold text-gray-900">API Keys</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage your API keys to authenticate your requests</p>
           </div>
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors shadow-sm shadow-emerald-200">
-            <Plus size={16} />
-            Create API Key
+          <div className="flex gap-2 items-center">
+            <input
+              value={apiKeyName}
+              onChange={e => setApiKeyName(e.target.value)}
+              className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+              placeholder="key name"
+              disabled={!token}
+            />
+            <button
+              onClick={createApiKey}
+              disabled={!token}
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
+            >
+              <Plus size={14} />
+              创建
+            </button>
+            <button
+              onClick={fetchApiKeys}
+              disabled={!token}
+              className="text-gray-500 hover:text-gray-800 px-3 py-2 rounded-md text-sm inline-flex items-center gap-1 border border-gray-200"
+            >
+              <RefreshCcw size={14} />
+              刷新
+            </button>
+          </div>
+          <div className="space-y-2">
+            {apiKeys.length === 0 && <p className="text-sm text-gray-500">暂无 API Key</p>}
+            {apiKeys.map(key => (
+              <div key={key.id} className="border border-gray-100 rounded-lg px-3 py-2 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-gray-800">{key.name}</div>
+                  <div className="text-xs text-gray-500">{key.createdAt || 'created'}</div>
+                </div>
+                <button
+                  className="text-gray-400 hover:text-emerald-600"
+                  onClick={() => {
+                    navigator.clipboard.writeText(apiKey || '');
+                  }}
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+            ))}
+            {apiKey && (
+              <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md p-2">
+                当前 X-API-Key: {apiKey.slice(0, 8)}...
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Solutions */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText size={16} className="text-emerald-600" />
+            <h2 className="text-lg font-semibold text-gray-900">保存 Solution</h2>
+          </div>
+          <button
+            className="text-gray-500 hover:text-gray-800 text-sm inline-flex items-center gap-1"
+            onClick={fetchSolutions}
+          >
+            <RefreshCcw size={14} />
+            刷新
           </button>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
+            placeholder="Title"
+            value={solutionInput.title}
+            onChange={e => setSolutionInput(prev => ({ ...prev, title: e.target.value }))}
+          />
+          <input
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
+            placeholder="Error type (runtime/build/...)"
+            value={solutionInput.errorType}
+            onChange={e => setSolutionInput(prev => ({ ...prev, errorType: e.target.value }))}
+          />
+          <textarea
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm md:col-span-2"
+            rows={2}
+            placeholder="Error message"
+            value={solutionInput.errorMessage}
+            onChange={e => setSolutionInput(prev => ({ ...prev, errorMessage: e.target.value }))}
+          />
+          <textarea
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm md:col-span-2"
+            rows={2}
+            placeholder="Context"
+            value={solutionInput.context}
+            onChange={e => setSolutionInput(prev => ({ ...prev, context: e.target.value }))}
+          />
+          <textarea
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm md:col-span-2"
+            rows={2}
+            placeholder="Root cause"
+            value={solutionInput.rootCause}
+            onChange={e => setSolutionInput(prev => ({ ...prev, rootCause: e.target.value }))}
+          />
+          <textarea
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm md:col-span-2"
+            rows={3}
+            placeholder="Solution"
+            value={solutionInput.solution}
+            onChange={e => setSolutionInput(prev => ({ ...prev, solution: e.target.value }))}
+          />
+          <input
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
+            placeholder="Tags (comma separated)"
+            value={solutionInput.tags}
+            onChange={e => setSolutionInput(prev => ({ ...prev, tags: e.target.value }))}
+          />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveSolution}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
+            >
+              {solutionStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
+              保存
+            </button>
+            {solutionStatus.message && <span className={`text-sm ${solutionStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{solutionStatus.message}</span>}
+          </div>
+        </div>
 
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-              <th className="py-3 px-2 font-semibold w-1/4">Name</th>
-              <th className="py-3 px-2 font-semibold w-1/4">Key</th>
-              <th className="py-3 px-2 font-semibold w-1/4">Created</th>
-              <th className="py-3 px-2 font-semibold w-1/4">Last Used</th>
-              <th className="py-3 px-2 w-10"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {API_KEYS.map((key, idx) => (
-              <tr key={idx} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-2 text-gray-800 font-medium">{key.name}</td>
-                <td className="py-4 px-2">
-                   <code className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono border border-gray-200">{key.key}</code>
-                </td>
-                <td className="py-4 px-2 text-gray-600 text-sm">{key.created}</td>
-                <td className="py-4 px-2 text-gray-600 text-sm">{key.lastUsed}</td>
-                <td className="py-4 px-2 text-center">
-                    <button className="text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 size={16} />
-                    </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {solutions.length === 0 && <p className="text-sm text-gray-500">暂无数据，先创建一条。</p>}
+          {solutions.map(sol => (
+            <div key={sol.id} className="border border-gray-100 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">{sol.title}</h3>
+                <span className="text-xs text-gray-500">{new Date(sol.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">{sol.errorType}</div>
+              <div className="text-sm text-gray-700 mt-2 line-clamp-3">{sol.errorMessage}</div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {sol.tags?.map(tag => (
+                  <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* API Documentation Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">API</h2>
-          <p className="text-sm text-gray-500 mt-1">
-             Use the Context8 API to search libraries and fetch documentation programmatically
-          </p>
+      {/* Search */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-4">
+        <div className="flex items-center gap-2">
+          <Search size={16} className="text-emerald-600" />
+          <h2 className="text-lg font-semibold text-gray-900">搜索我的 solutions</h2>
         </div>
-
-        <div className="flex gap-2 mb-4">
-            <button className="bg-gray-800 text-white px-4 py-1.5 rounded text-xs font-medium flex items-center gap-2 shadow-sm">
-                Search
-            </button>
-             <button className="bg-white border border-gray-200 text-gray-600 px-4 py-1.5 rounded text-xs font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors">
-                Get Docs
-            </button>
+        <div className="flex flex-col md:flex-row gap-3">
+          <input
+            className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+            placeholder="输入关键字"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          <button
+            onClick={runSearch}
+            className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
+          >
+            {searchStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
+            搜索
+          </button>
+          {searchStatus.message && <span className={`text-sm ${searchStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{searchStatus.message}</span>}
         </div>
-
-        <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-4 font-mono text-sm overflow-x-auto custom-scrollbar group">
-            <pre className="text-gray-700 whitespace-pre-wrap break-all">{CURL_SNIPPET}</pre>
-            <button className="absolute top-3 right-3 text-gray-400 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all">
-                <Copy size={16} />
-            </button>
-        </div>
-
-        <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Parameters</h3>
-            <div className="flex items-start gap-2 text-sm">
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 text-gray-600 text-xs">query</code>
-                <span className="text-gray-500">- Search term for finding libraries</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {searchResults.map(r => (
+            <div key={r.id} className="border border-gray-100 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">{r.title}</h3>
+                <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">{r.errorType}</div>
+              <p className="text-sm text-gray-700 mt-2">{r.preview}</p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {r.tags?.map(tag => (
+                  <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-        </div>
-
-         <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Response</h3>
-            <div className="w-full h-24 bg-gray-50 rounded-lg border border-gray-200"></div>
+          ))}
+          {searchResults.length === 0 && searchStatus.kind !== 'loading' && (
+            <p className="text-sm text-gray-500">暂无结果</p>
+          )}
         </div>
       </div>
     </div>

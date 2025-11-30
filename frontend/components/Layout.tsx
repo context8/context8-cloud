@@ -14,9 +14,11 @@ interface LayoutProps {
   children: React.ReactNode;
   currentView: View;
   onViewChange: (view: View) => void;
+  user?: any;
+  onLogout?: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewChange }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewChange, user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -31,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
             <div className="bg-black rounded-sm p-0.5">
                <Terminal size={14} className="text-white" />
             </div>
-            <span className="font-semibold text-sm">Context7</span>
+            <span className="font-semibold text-sm">Context8</span>
           </div>
 
           <div className="hidden md:flex items-center gap-2 bg-gray-100/50 rounded-md px-3 py-1.5 text-sm border border-transparent hover:border-gray-200 cursor-pointer transition-colors">
@@ -56,10 +58,24 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
             <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Try Live</a>
             <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Install</a>
           </nav>
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium text-sm flex items-center gap-1.5 transition-colors shadow-sm shadow-emerald-200">
-            <Plus size={16} />
-            Add Docs
-          </button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600 text-sm truncate max-w-[150px]">
+                {user.name || user.email || "Signed in"}
+              </span>
+              <button
+                className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                onClick={onLogout}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium text-sm flex items-center gap-1.5 transition-colors shadow-sm shadow-emerald-200">
+              <Plus size={16} />
+              Add Docs
+            </button>
+          )}
         </div>
       </header>
 
@@ -72,7 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       <footer className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-auto border-t border-gray-100">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
           <div className="flex items-center gap-2">
-            <span>© 2025, Context7 is an <a href="#" className="underline decoration-gray-300 hover:text-gray-800">Upstash</a> project</span>
+            <span>© 2025, Context8 local knowledge</span>
           </div>
           
           <div className="flex items-center gap-6">

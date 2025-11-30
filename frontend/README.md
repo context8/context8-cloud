@@ -2,19 +2,26 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# Context8 CLI Frontend
 
-This contains everything you need to run your app locally.
+Minimal UI for Context8 cloud：邮箱验证码登录 → 生成 API Key → 保存/搜索 solutions。
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Z9kPjA-FFRzOfL-wz9CCSgoLKC3xyT9o
+## 配置
+1) `npm install`
+2) `.env.local`：
+```
+VITE_API_BASE=http://localhost:8000   # 或你的部署地址
+```
 
-## Run Locally
+## 运行
+```
+npm run dev
+```
+浏览器打开 `http://localhost:5173`。
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 使用流程
+1) 输入邮箱，点击“发送验证码”
+2) 输入验证码，点击“校验并登录”（会保存 JWT）
+3) 可选：创建 API Key，后续用 `X-API-Key` 访问
+4) 在 “保存 Solution” 中填写必填字段，提交后会写入当前用户的 solutions
+5) “搜索” 区域按关键字搜索个人 solutions（向量优先，失败回退关键词）

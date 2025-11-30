@@ -10,12 +10,12 @@ export const Home: React.FC = () => {
       {/* Hero Section */}
       <div className="w-full pt-8 pb-4">
         <h1 className="text-3xl md:text-4xl font-bold text-emerald-900 mb-3 tracking-tight">
-          Local Error Solution Vault
+          Context8: Local Error Solutions
           <br />
-          <span className="text-emerald-700/80 font-medium">for AI Coding Assistants</span>
+          <span className="text-emerald-700/80 font-medium">save, search, and reuse fixes</span>
         </h1>
         <p className="text-gray-500 text-lg max-w-2xl">
-          Store, search, and retrieve error solutions with context using semantic + keyword search
+          Keep your debugging knowledge up to date; copy fixes into Cursor, Claude, or any LLM.
         </p>
       </div>
 
@@ -24,13 +24,13 @@ export const Home: React.FC = () => {
         <div className="relative flex-grow">
           <input
             type="text"
-            placeholder="Search for error solutions (e.g. 'TypeError: cannot read property')"
+            placeholder="Search a fix or tag (e.g. React hooks, runtime error)"
             className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-700 placeholder-gray-400"
           />
         </div>
-        <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap flex items-center gap-2">
-          <Search size={18} />
-          Search
+        <div className="flex items-center justify-center text-gray-400 font-medium px-2">or</div>
+        <button className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap">
+          Chat with Solutions
         </button>
       </div>
 
@@ -68,11 +68,11 @@ export const Home: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/30 text-xs uppercase text-gray-400 font-semibold tracking-wider">
-                <th className="py-4 px-6 w-1/4">Error Type</th>
-                <th className="py-4 px-6">Context</th>
-                <th className="py-4 px-6 text-right">Score</th>
-                <th className="py-4 px-6 text-right">Solutions</th>
-                <th className="py-4 px-6 text-right">Last Saved</th>
+                <th className="py-4 px-6 w-1/4">Source</th>
+                <th className="py-4 px-6"></th>
+                <th className="py-4 px-6 text-right">Tokens</th>
+                <th className="py-4 px-6 text-right">Snippets</th>
+                <th className="py-4 px-6 text-right">Update</th>
                 <th className="py-4 px-6 text-center"></th>
               </tr>
             </thead>
@@ -107,8 +107,8 @@ export const Home: React.FC = () => {
           </table>
           <div className="w-full bg-gray-50/30 py-3 text-center border-t border-gray-100">
             <div className="text-xs text-gray-400 flex items-center justify-between px-6">
-                <span>LOCAL ERROR SOLUTIONS VAULT</span>
-                <a href="#" className="hover:text-emerald-600 flex items-center gap-1">VIEW ALL SOLUTIONS →</a>
+                <span>53,828 LIBRARIES</span>
+                <a href="#" className="hover:text-emerald-600 flex items-center gap-1">SEE TASKS IN PROGRESS →</a>
             </div>
           </div>
         </div>
