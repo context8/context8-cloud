@@ -92,9 +92,9 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
         body: JSON.stringify({ email }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSendStatus({ kind: 'ok', message: '验证码已发送' });
+      setSendStatus({ kind: 'ok', message: 'Verification code sent' });
     } catch (e: any) {
-      setSendStatus({ kind: 'error', message: e?.message || '发送失败' });
+      setSendStatus({ kind: 'error', message: e?.message || 'Failed to send' });
     }
   };
 
@@ -112,18 +112,18 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
       setSession({ token: data.token, email: data.user.email });
       localStorage.setItem('ctx8_token', data.token);
       localStorage.setItem('ctx8_email', data.user.email);
-      setVerifyStatus({ kind: 'ok', message: '登录成功' });
+      setVerifyStatus({ kind: 'ok', message: 'Login successful' });
       setCode('');
       void fetchApiKeys();
       void fetchSolutions();
     } catch (e: any) {
-      setVerifyStatus({ kind: 'error', message: e?.message || '校验失败' });
+      setVerifyStatus({ kind: 'error', message: e?.message || 'Verification failed' });
     }
   };
 
   const createApiKey = async () => {
     if (!token) return;
-    setVerifyStatus({ kind: 'loading', message: '创建 API Key...' });
+    setVerifyStatus({ kind: 'loading', message: 'Creating API Key...' });
     try {
       const res = await fetch(`${API_BASE}/apikeys?name=${encodeURIComponent(apiKeyName || 'default')}`, {
         method: 'POST',
@@ -133,20 +133,20 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
       const data = await res.json();
       setApiKey(data.apiKey);
       localStorage.setItem('ctx8_apikey', data.apiKey);
-      setVerifyStatus({ kind: 'ok', message: 'API Key 已创建' });
+      setVerifyStatus({ kind: 'ok', message: 'API Key created' });
       await fetchApiKeys();
     } catch (e: any) {
-      setVerifyStatus({ kind: 'error', message: e?.message || '创建失败' });
+      setVerifyStatus({ kind: 'error', message: e?.message || 'Failed to create' });
     }
   };
 
   const saveSolution = async () => {
     if (!token && !apiKey) {
-      setSolutionStatus({ kind: 'error', message: '需要先登录或设置 API Key' });
+      setSolutionStatus({ kind: 'error', message: 'Please login or set API Key first' });
       return;
     }
     if (!solutionInput.title || !solutionInput.errorMessage || !solutionInput.context || !solutionInput.rootCause || !solutionInput.solution) {
-      setSolutionStatus({ kind: 'error', message: '请填写必填字段' });
+      setSolutionStatus({ kind: 'error', message: 'Please fill in required fields' });
       return;
     }
     setSolutionStatus({ kind: 'loading' });
@@ -166,17 +166,17 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSolutionStatus({ kind: 'ok', message: '已保存' });
+      setSolutionStatus({ kind: 'ok', message: 'Saved' });
       setSolutionInput({ title: '', errorMessage: '', errorType: 'runtime', context: '', rootCause: '', solution: '', tags: '' });
       await fetchSolutions();
     } catch (e: any) {
-      setSolutionStatus({ kind: 'error', message: e?.message || '保存失败' });
+      setSolutionStatus({ kind: 'error', message: e?.message || 'Failed to save' });
     }
   };
 
   const runSearch = async () => {
     if (!token && !apiKey) {
-      setSearchStatus({ kind: 'error', message: '需要先登录或设置 API Key' });
+      setSearchStatus({ kind: 'error', message: 'Please login or set API Key first' });
       return;
     }
     if (!searchQuery) {
@@ -193,16 +193,16 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setSearchResults(data.results || []);
-      setSearchStatus({ kind: 'ok', message: `共 ${data.total} 条` });
+      setSearchStatus({ kind: 'ok', message: `${data.total} results` });
     } catch (e: any) {
-      setSearchStatus({ kind: 'error', message: e?.message || '搜索失败' });
+      setSearchStatus({ kind: 'error', message: e?.message || 'Search failed' });
     }
   };
 
   const currentAuth = useMemo(() => {
     if (apiKey) return `X-API-Key ${apiKey.slice(0, 8)}...`;
-    if (token) return 'Bearer (JWT 已保存)';
-    return '未登录';
+    if (token) return 'Bearer (JWT saved)';
+    return 'Not logged in';
   }, [apiKey, token]);
 
   return (
@@ -224,34 +224,34 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Mail size={16} className="text-emerald-600" />
-            <h2 className="text-lg font-semibold text-gray-900">邮箱验证码登录</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Email Verification Login</h2>
           </div>
           <div className="space-y-3">
-            <label className="text-sm text-gray-700 font-medium">邮箱</label>
+            <label className="text-sm text-gray-700 font-medium">Email</label>
             <input value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm" placeholder="you@example.com" />
             <button
               onClick={sendCode}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
             >
               {sendStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
-              发送验证码
+              Send Code
             </button>
             {sendStatus.message && <p className={`text-sm ${sendStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{sendStatus.message}</p>}
           </div>
           <div className="space-y-3">
-            <label className="text-sm text-gray-700 font-medium">验证码</label>
+            <label className="text-sm text-gray-700 font-medium">Verification Code</label>
             <input value={code} onChange={e => setCode(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm" placeholder="6 digits" />
             <button
               onClick={verifyCode}
               className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
             >
               {verifyStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
-              校验并登录
+              Verify and Login
             </button>
             {verifyStatus.message && <p className={`text-sm ${verifyStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{verifyStatus.message}</p>}
             {token && (
               <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-md p-3 mt-2">
-                JWT 已保存，调用时附上 `Authorization: Bearer ...`
+                JWT saved, include `Authorization: Bearer ...` when calling
               </div>
             )}
           </div>
@@ -276,7 +276,7 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
               className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
             >
               <Plus size={14} />
-              创建
+              Create
             </button>
             <button
               onClick={fetchApiKeys}
@@ -284,11 +284,11 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
               className="text-gray-500 hover:text-gray-800 px-3 py-2 rounded-md text-sm inline-flex items-center gap-1 border border-gray-200"
             >
               <RefreshCcw size={14} />
-              刷新
+              Refresh
             </button>
           </div>
           <div className="space-y-2">
-            {apiKeys.length === 0 && <p className="text-sm text-gray-500">暂无 API Key</p>}
+            {apiKeys.length === 0 && <p className="text-sm text-gray-500">No API Keys</p>}
             {apiKeys.map(key => (
               <div key={key.id} className="border border-gray-100 rounded-lg px-3 py-2 flex items-center justify-between">
                 <div>
@@ -307,7 +307,7 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
             ))}
             {apiKey && (
               <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md p-2">
-                当前 X-API-Key: {apiKey.slice(0, 8)}...
+                Current X-API-Key: {apiKey.slice(0, 8)}...
               </div>
             )}
           </div>
@@ -319,14 +319,14 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-emerald-600" />
-            <h2 className="text-lg font-semibold text-gray-900">保存 Solution</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Save Solution</h2>
           </div>
           <button
             className="text-gray-500 hover:text-gray-800 text-sm inline-flex items-center gap-1"
             onClick={fetchSolutions}
           >
             <RefreshCcw size={14} />
-            刷新
+            Refresh
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -382,14 +382,14 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
             >
               {solutionStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
-              保存
+              Save
             </button>
             {solutionStatus.message && <span className={`text-sm ${solutionStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{solutionStatus.message}</span>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {solutions.length === 0 && <p className="text-sm text-gray-500">暂无数据，先创建一条。</p>}
+          {solutions.length === 0 && <p className="text-sm text-gray-500">No data, create one first.</p>}
           {solutions.map(sol => (
             <div key={sol.id} className="border border-gray-100 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
@@ -414,12 +414,12 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-4">
         <div className="flex items-center gap-2">
           <Search size={16} className="text-emerald-600" />
-          <h2 className="text-lg font-semibold text-gray-900">搜索我的 solutions</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Search My Solutions</h2>
         </div>
         <div className="flex flex-col md:flex-row gap-3">
           <input
             className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
-            placeholder="输入关键字"
+            placeholder="Enter keywords"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -428,7 +428,7 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
             className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center gap-2"
           >
             {searchStatus.kind === 'loading' && <Loader2 className="animate-spin" size={14} />}
-            搜索
+            Search
           </button>
           {searchStatus.message && <span className={`text-sm ${searchStatus.kind === 'error' ? 'text-red-600' : 'text-gray-600'}`}>{searchStatus.message}</span>}
         </div>
@@ -451,7 +451,7 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
             </div>
           ))}
           {searchResults.length === 0 && searchStatus.kind !== 'loading' && (
-            <p className="text-sm text-gray-500">暂无结果</p>
+            <p className="text-sm text-gray-500">No results</p>
           )}
         </div>
       </div>
