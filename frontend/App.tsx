@@ -54,7 +54,7 @@ const App: React.FC = () => {
       onLogout={session ? handleLogout : undefined}
     >
       {currentView === 'home' ? (
-        <Home />
+        <Home onViewChange={setCurrentView} />
       ) : (
         <Dashboard sessionState={sessionValue} />
       )}
