@@ -227,7 +227,7 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
                     {sol.title || 'Untitled Solution'}
                   </h3>
                   <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                    {sol.createdAt ? new Date(sol.createdAt).toLocaleDateString() : 'Unknown date'}
+                    {safeParseDate(sol.createdAt) > 0 ? new Date(sol.createdAt!).toLocaleDateString() : 'Unknown date'}
                   </span>
                 </div>
 
