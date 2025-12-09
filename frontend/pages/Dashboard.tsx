@@ -551,17 +551,23 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
             {searchResults.map(r => (
               <div key={r.id} className="border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900">{r.title}</h3>
-                  <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</span>
+                  <h3 className="text-sm font-semibold text-gray-900">{r.title || 'Untitled'}</h3>
+                  <span className="text-xs text-gray-500">
+                    {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'Unknown date'}
+                  </span>
                 </div>
-                <div className="text-xs text-gray-700 font-medium mb-2">{r.errorType}</div>
-                <p className="text-sm text-gray-700 mb-3">{r.preview}</p>
+                <div className="text-xs text-gray-700 font-medium mb-2">{r.errorType || 'Unknown type'}</div>
+                <p className="text-sm text-gray-700 mb-3">{r.preview || 'No preview available'}</p>
                 <div className="flex flex-wrap gap-2">
-                  {r.tags?.map(tag => (
-                    <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200">
-                      {tag}
-                    </span>
-                  ))}
+                  {r.tags && r.tags.length > 0 ? (
+                    r.tags.map(tag => (
+                      <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md border border-gray-200">
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400">No tags</span>
+                  )}
                 </div>
               </div>
             ))}
