@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_BASE } from '../constants';
 import { Solution, View } from '../types';
-import { Search, Star, TrendingUp, Clock, FileText, Loader2 } from 'lucide-react';
+import { Star, TrendingUp, Clock, FileText, Loader2 } from 'lucide-react';
 
 type Props = {
   onViewChange?: (view: View) => void;
@@ -14,54 +14,38 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'recent' | 'popular' | 'trending'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // API 调用
-  useEffect(() => {
-    const fetchPublicSolutions = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // 显式声明 publicOnly=true，避免未来后端破坏用户空间
-        const res = await fetch(`${API_BASE}/solutions?limit=50&publicOnly=true`);
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        setSolutions(Array.isArray(data) ? data : []);
-      } catch (e: any) {
-        console.error('[fetchPublicSolutions]', e);
-        setError(e.message || 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPublicSolutions();
-  }, []);
-
-  // 重试函数
-  const retry = () => {
+  // API 调用 - 单一真相源
+  const fetchPublicSolutions = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
-    const fetchPublicSolutions = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/solutions?limit=50&publicOnly=true`);
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        setSolutions(Array.isArray(data) ? data : []);
-      } catch (e: any) {
-        console.error('[fetchPublicSolutions]', e);
-        setError(e.message || 'Unknown error');
-      } finally {
-        setLoading(false);
+    try {
+      // 显式声明 publicOnly=true，避免未来后端破坏用户空间
+      const res = await fetch(`${API_BASE}/solutions?limit=50&publicOnly=true`, { signal });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
       }
-    };
-    fetchPublicSolutions();
-  };
+      const data = await res.json();
+      setSolutions(Array.isArray(data) ? data : []);
+    } catch (e: any) {
+      if (e.name === 'AbortError') return; // 被取消的请求不报错
+      console.error('[fetchPublicSolutions]', e);
+      setError(e.message || 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchPublicSolutions(controller.signal);
+    return () => controller.abort(); // 清理：取消未完成的请求
+  }, [fetchPublicSolutions]);
+
+  // 重试函数 - 直接调用
+  const retry = () => fetchPublicSolutions();
 
   // 安全的日期解析
   const safeParseDate = (dateStr: string | undefined): number => {
@@ -150,7 +134,7 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
         </div>
         {/* 搜索提示 */}
         <div className="text-xs text-gray-400">
-          Client-side search (limited to {solutions.length} results)
+          Client-side search (limited to first 50 public solutions)
           {sortLabel && <span className="ml-2">• {sortLabel}</span>}
         </div>
       </div>
@@ -211,15 +195,7 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
               <div
                 key={sol.id}
                 className="border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => {
-                  // 未来：导航到 /solutions/:id 详情页
-                  // 当前：引导登录
-                  if (onViewChange) {
-                    onViewChange('dashboard');
-                  } else {
-                    console.log('View solution:', sol.id);
-                  }
-                }}
+                onClick={() => setExpandedId(expandedId === sol.id ? null : sol.id)}
               >
                 {/* 标题 + 日期 */}
                 <div className="flex items-center justify-between mb-2">
@@ -261,6 +237,29 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
                     <span className="text-xs text-gray-400">No tags</span>
                   )}
                 </div>
+
+                {/* 展开详情区域 */}
+                {expandedId === sol.id && (
+                  <div className="mt-3 pt-3 border-t border-gray-200 animate-in fade-in duration-200">
+                    <div className="text-sm text-gray-700 mb-2">
+                      <strong className="text-gray-900">Root Cause:</strong>{' '}
+                      {sol.rootCause || 'Not provided'}
+                    </div>
+                    <div className="text-sm text-gray-700 mb-3">
+                      <strong className="text-gray-900">Solution:</strong>{' '}
+                      {sol.solution || 'Not provided'}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewChange?.('dashboard');
+                      }}
+                      className="text-emerald-600 hover:text-emerald-700 hover:underline text-sm font-medium transition-colors"
+                    >
+                      Sign in to save this solution →
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
