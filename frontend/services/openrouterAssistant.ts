@@ -50,8 +50,7 @@ const authHeaders = (auth: Auth) => {
 };
 
 const needsSearch = (prompt: string) =>
-  /\b(error|bug|crash|exception|traceback|stack trace|failed|failure|issue)\b/i.test(prompt) ||
-  /错误|异常|崩溃|失败|报错|问题/.test(prompt);
+  /\b(error|bug|crash|exception|traceback|stack trace|failed|failure|issue)\b/i.test(prompt);
 
 const safeJsonParse = <T,>(raw: string, fallback: T): T => {
   try {

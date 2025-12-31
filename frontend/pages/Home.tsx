@@ -10,7 +10,7 @@ type Props = {
 
 export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
   const isDark = theme === 'dark';
-  // 状态管理
+  // State
   const [solutions, setSolutions] = useState<Solution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,12 +18,12 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // API 调用 - 单一真相源
+  // API fetch - single source of truth
   const fetchPublicSolutions = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      // 显式声明 publicOnly=true，避免未来后端破坏用户空间
+      // Explicitly request publicOnly=true to avoid future breaking changes
       const res = await fetch(`${API_BASE}/solutions?limit=50&publicOnly=true`, { signal });
       if (!res.ok) {
         const text = await res.text();
@@ -32,7 +32,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
       const data = await res.json();
       setSolutions(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      if (e.name === 'AbortError') return; // 被取消的请求不报错
+      if (e.name === 'AbortError') return; // Ignore aborted requests
       console.error('[fetchPublicSolutions]', e);
       setError(e.message || 'Unknown error');
     } finally {
@@ -43,24 +43,24 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
   useEffect(() => {
     const controller = new AbortController();
     fetchPublicSolutions(controller.signal);
-    return () => controller.abort(); // 清理：取消未完成的请求
+    return () => controller.abort(); // Cleanup: cancel pending requests
   }, [fetchPublicSolutions]);
 
-  // 重试函数 - 直接调用
+  // Retry helper
   const retry = () => fetchPublicSolutions();
 
-  // 安全的日期解析
+  // Safe date parsing
   const safeParseDate = (dateStr: string | undefined): number => {
     if (!dateStr) return 0;
     const time = new Date(dateStr).getTime();
     return isNaN(time) ? 0 : time;
   };
 
-  // 客户端过滤逻辑
+  // Client-side filtering
   const filteredSolutions = useMemo(() => {
     let filtered = [...solutions];
 
-    // 搜索过滤
+    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(sol =>
@@ -70,17 +70,17 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
       );
     }
 
-    // Tab 排序 - 统一降级到 createdAt
+    // Tab sorting - fallback to createdAt
     if (activeTab === 'recent') {
       filtered.sort((a, b) => safeParseDate(b.createdAt) - safeParseDate(a.createdAt));
     } else if (activeTab === 'popular') {
-      // views 优先，缺失时降级到 createdAt
+      // Views first, fallback to createdAt
       filtered.sort((a, b) => {
         const viewsDiff = (b.views || 0) - (a.views || 0);
         return viewsDiff !== 0 ? viewsDiff : safeParseDate(b.createdAt) - safeParseDate(a.createdAt);
       });
     } else if (activeTab === 'trending') {
-      // upvotes 优先，缺失时降级到 createdAt
+      // Upvotes first, fallback to createdAt
       filtered.sort((a, b) => {
         const upvotesDiff = (b.upvotes || 0) - (a.upvotes || 0);
         return upvotesDiff !== 0 ? upvotesDiff : safeParseDate(b.createdAt) - safeParseDate(a.createdAt);
@@ -90,7 +90,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
     return filtered;
   }, [solutions, searchQuery, activeTab]);
 
-  // UI 文案提示
+  // UI hint
   const sortLabel = useMemo(() => {
     const hasViews = solutions.some(s => (s.views || 0) > 0);
     const hasUpvotes = solutions.some(s => (s.upvotes || 0) > 0);
@@ -144,7 +144,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
             Try Demo Chat
           </button>
         </div>
-        {/* 搜索提示 */}
+        {/* Search hint */}
         <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
           Client-side search (limited to first 50 public solutions)
           {sortLabel && <span className="ml-2">• {sortLabel}</span>}
@@ -180,14 +180,14 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </button>
         </div>
 
-        {/* 加载状态 */}
+        {/* Loading state */}
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="animate-spin text-emerald-600" size={32} />
           </div>
         )}
 
-        {/* 错误状态 */}
+        {/* Error state */}
         {error && (
           <div className={`border rounded-lg p-6 text-center ${isDark ? 'bg-red-950/40 border-red-900' : 'bg-red-50 border-red-200'}`}>
             <p className={`mb-3 ${isDark ? 'text-red-300' : 'text-red-700'}`}>{error}</p>
@@ -200,7 +200,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </div>
         )}
 
-        {/* Solutions 网格 */}
+        {/* Solutions grid */}
         {!loading && !error && filteredSolutions.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredSolutions.map(sol => (
@@ -209,7 +209,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
                 className={`rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isDark ? 'border border-slate-800 bg-slate-900/60' : 'border border-gray-100 bg-white'}`}
                 onClick={() => setExpandedId(expandedId === sol.id ? null : sol.id)}
               >
-                {/* 标题 + 日期 */}
+                {/* Title + date */}
                 <div className="flex items-center justify-between mb-2">
                   <h3 className={`text-sm font-semibold line-clamp-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
                     {sol.title || 'Untitled Solution'}
@@ -219,12 +219,12 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
                   </span>
                 </div>
 
-                {/* 错误类型 */}
+                {/* Error type */}
                 <div className={`text-xs font-medium mb-2 ${isDark ? 'text-emerald-300' : 'text-gray-700'}`}>
                   {sol.errorType || 'Unknown type'}
                 </div>
 
-                {/* 错误信息预览 */}
+                {/* Error preview */}
                 <p className={`text-sm line-clamp-2 mb-3 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
                   {sol.errorMessage || 'No description available'}
                 </p>
@@ -248,7 +248,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
                   )}
                 </div>
 
-                {/* 展开详情区域 */}
+                {/* Expanded details */}
                 {expandedId === sol.id && (
                   <div className={`mt-3 pt-3 border-t animate-in fade-in duration-200 ${isDark ? 'border-slate-800' : 'border-gray-200'}`}>
                     <div className={`text-sm mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
@@ -275,7 +275,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </div>
         )}
 
-        {/* 空状态 */}
+        {/* Empty state */}
         {!loading && !error && filteredSolutions.length === 0 && (
           <div className={`text-center py-12 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
             <FileText size={48} className={`mx-auto mb-4 ${isDark ? 'text-slate-700' : 'text-gray-300'}`} />
@@ -295,7 +295,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </div>
         )}
 
-        {/* Footer 统计 */}
+        {/* Footer stats */}
         <div className={`mt-6 rounded-xl py-3 px-6 border ${isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-gray-50/30 border-gray-100'}`}>
           <div className={`text-xs flex items-center justify-between ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
             <span>{solutions.length} PUBLIC SOLUTIONS</span>
