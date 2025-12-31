@@ -209,3 +209,4 @@ tailwindcss + shadcn
 17. Context8 检索实现为自建稀疏倒排索引（inverted_index + solution_stats）与稠密向量混排，无 SQLite FTS 虚表；空索引由 ensureSparseIndex 回填。
 18. 前端首页展示公共方案：未登录调用 `GET /solutions?publicOnly=true&limit=50` 获取公开 solutions，客户端搜索/排序仅基于这批数据；缺失 views/upvotes 时 Popular/Trending 退化为按 createdAt；卡片展开仅用于浏览，保存或导航统一引导到 Dashboard。
 19. Demo Chat 使用 OpenRouter 前端直连：环境变量 `VITE_OPENROUTER_API_KEY/MODEL/BASE_URL/REFERRER`，通过 function call 调用 `/search`，认证优先 `X-API-Key` 其次 `Bearer`。
+20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤+主题切换），以 Context8 绿色主题定制后嵌入到 `frontend/pages/DemoChat.tsx`。
