@@ -11,6 +11,10 @@ Minimal UI for Context8 cloud：邮箱验证码登录 → 生成 API Key → 保
 2) `.env.local`：
 ```
 VITE_API_BASE=http://localhost:8000   # 或你的部署地址
+VITE_OPENROUTER_API_KEY=your_key_here
+VITE_OPENROUTER_MODEL=openai/gpt-4o-mini
+VITE_OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+VITE_OPENROUTER_REFERRER=http://localhost:5173
 ```
 
 ## 运行
@@ -25,3 +29,4 @@ npm run dev
 3) 可选：创建 API Key，后续用 `X-API-Key` 访问
 4) 在 “保存 Solution” 中填写必填字段，提交后会写入当前用户的 solutions
 5) “搜索” 区域按关键字搜索个人 solutions（向量优先，失败回退关键词）
+6) “Demo Chat” 页面会调用 OpenRouter，并通过 function call 查询 Context8 solutions
