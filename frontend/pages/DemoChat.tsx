@@ -39,6 +39,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeMode>('light');
+  const [resetToken, setResetToken] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const auth = useMemo(() => ({
@@ -111,6 +112,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
     setMessages(initialMessages);
     setError(null);
     setStatus('idle');
+    setResetToken((prev) => prev + 1);
   };
 
   const isDark = theme === 'dark';
@@ -204,7 +206,12 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
       </main>
 
       <div className={isDark ? 'bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-4' : 'bg-gradient-to-t from-white via-white to-transparent pt-4'}>
-        <GeminiChatInput onSend={handleSend} disabled={status === 'loading'} theme={theme} />
+        <GeminiChatInput
+          onSend={handleSend}
+          disabled={status === 'loading'}
+          theme={theme}
+          resetToken={resetToken}
+        />
       </div>
 
       <section className={`border-t ${isDark ? 'border-slate-800 bg-slate-950' : 'border-emerald-100 bg-emerald-50/40'} px-6 py-6`}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -6,6 +6,7 @@ interface GeminiChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   theme: ThemeMode;
+  resetToken?: number;
 }
 
 const suggestions = [
@@ -15,8 +16,17 @@ const suggestions = [
   { icon: '📂', text: 'CORS blocked when calling API' },
 ];
 
-export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({ onSend, disabled, theme }) => {
+export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
+  onSend,
+  disabled,
+  theme,
+  resetToken,
+}) => {
   const [input, setInput] = useState('');
+
+  useEffect(() => {
+    setInput('');
+  }, [resetToken]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -65,6 +75,8 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({ onSend, disabl
           onChange={(e) => setInput(e.target.value)}
           placeholder="Describe the bug or paste the error message..."
           rows={2}
+          name="demoChatMessage"
+          id="demo-chat-message"
           className={`w-full bg-transparent border-none outline-none resize-none text-sm leading-relaxed transition-colors ${
             isDark ? 'text-slate-100 placeholder-slate-500' : 'text-slate-800 placeholder-slate-400'
           }`}

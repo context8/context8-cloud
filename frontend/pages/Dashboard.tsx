@@ -288,6 +288,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       onKeyPress={e => e.key === 'Enter' && sendCode()}
+                      id="login-email"
+                      name="loginEmail"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                       placeholder="you@example.com"
                     />
@@ -309,6 +311,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                       value={code}
                       onChange={e => setCode(e.target.value)}
                       onKeyPress={e => e.key === 'Enter' && verifyCode()}
+                      id="login-code"
+                      name="loginCode"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                       placeholder="6 digits"
                     />
@@ -338,6 +342,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                   <input
                     value={apiKeyName}
                     onChange={e => setApiKeyName(e.target.value)}
+                    id="apikey-name"
+                    name="apiKeyName"
                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
                     placeholder="key name"
                   />
@@ -435,12 +441,16 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 placeholder="Title"
                 value={solutionInput.title}
+                id="solution-title"
+                name="solutionTitle"
                 onChange={e => setSolutionInput(prev => ({ ...prev, title: e.target.value }))}
               />
               <input
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 placeholder="Error type (runtime/build/...)"
                 value={solutionInput.errorType}
+                id="solution-error-type"
+                name="solutionErrorType"
                 onChange={e => setSolutionInput(prev => ({ ...prev, errorType: e.target.value }))}
               />
               <textarea
@@ -448,6 +458,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                 rows={2}
                 placeholder="Error message"
                 value={solutionInput.errorMessage}
+                id="solution-error-message"
+                name="solutionErrorMessage"
                 onChange={e => setSolutionInput(prev => ({ ...prev, errorMessage: e.target.value }))}
               />
               <textarea
@@ -455,6 +467,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                 rows={2}
                 placeholder="Context"
                 value={solutionInput.context}
+                id="solution-context"
+                name="solutionContext"
                 onChange={e => setSolutionInput(prev => ({ ...prev, context: e.target.value }))}
               />
               <textarea
@@ -462,6 +476,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                 rows={2}
                 placeholder="Root cause"
                 value={solutionInput.rootCause}
+                id="solution-root-cause"
+                name="solutionRootCause"
                 onChange={e => setSolutionInput(prev => ({ ...prev, rootCause: e.target.value }))}
               />
               <textarea
@@ -469,12 +485,16 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                 rows={3}
                 placeholder="Solution"
                 value={solutionInput.solution}
+                id="solution-solution"
+                name="solutionSolution"
                 onChange={e => setSolutionInput(prev => ({ ...prev, solution: e.target.value }))}
               />
               <input
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 placeholder="Tags (comma separated)"
                 value={solutionInput.tags}
+                id="solution-tags"
+                name="solutionTags"
                 onChange={e => setSolutionInput(prev => ({ ...prev, tags: e.target.value }))}
               />
               <div className="flex items-center gap-3">
@@ -529,6 +549,8 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
               className="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm"
               placeholder="Enter keywords to search for solutions..."
               value={searchQuery}
+              id="search-query"
+              name="searchQuery"
               onChange={e => setSearchQuery(e.target.value)}
               onKeyPress={e => e.key === 'Enter' && runSearch()}
             />

@@ -121,6 +121,8 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search error solutions (e.g., React hooks, TypeScript error)"
+              id="public-search"
+              name="publicSearch"
               className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-700 placeholder-gray-400"
             />
           </div>
