@@ -5,6 +5,7 @@ export interface ApiKey {
 }
 
 export type View = 'home' | 'dashboard' | 'demo';
+export type ThemeMode = 'light' | 'dark';
 
 export interface SolutionInput {
   title: string;

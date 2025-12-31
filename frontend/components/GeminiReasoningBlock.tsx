@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-type ThemeMode = 'light' | 'dark';
+import { ThemeMode } from '../types';
 
 interface GeminiReasoningBlockProps {
   title: string;

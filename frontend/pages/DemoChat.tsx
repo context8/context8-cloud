@@ -2,10 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { runOpenRouterAssistant } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
-import { SearchResult, View } from '../types';
+import { SearchResult, ThemeMode, View } from '../types';
 import { AlertTriangle, Database, Terminal } from 'lucide-react';
-
-type ThemeMode = 'light' | 'dark';
 
 type SessionState = {
   session: { token: string; email: string } | null;
@@ -15,6 +13,7 @@ type SessionState = {
 type Props = {
   sessionState: SessionState;
   onViewChange: (view: View) => void;
+  theme: ThemeMode;
 };
 
 type ChatMessage = {
@@ -34,11 +33,10 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
+export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<ThemeMode>('light');
   const [resetToken, setResetToken] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -133,29 +131,12 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
             <p className={`text-[10px] font-mono tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OPENROUTER • FUNCTION CALL • SEARCH</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className={`p-2 rounded-full transition-colors border ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'}`}
-            title="Toggle Theme"
-          >
-            {isDark ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M12 21v-1m0-5a3 3 0 110-6 3 3 0 010 6z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
-          <button
-            onClick={resetChat}
-            className={`px-3 py-1 text-xs rounded-full transition-colors border ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'}`}
-          >
-            New Chat
-          </button>
-        </div>
+        <button
+          onClick={resetChat}
+          className={`px-3 py-1 text-xs rounded-full transition-colors border ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'}`}
+        >
+          New Chat
+        </button>
       </header>
 
       <div className={`border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-emerald-100 bg-emerald-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-type ThemeMode = 'light' | 'dark';
+import { ThemeMode } from '../types';
 
 interface GeminiChatInputProps {
   onSend: (message: string) => void;
