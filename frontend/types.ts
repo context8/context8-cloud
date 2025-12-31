@@ -4,7 +4,7 @@ export interface ApiKey {
   createdAt?: string;
 }
 
-export type View = 'home' | 'dashboard';
+export type View = 'home' | 'dashboard' | 'demo';
 
 export interface SolutionInput {
   title: string;

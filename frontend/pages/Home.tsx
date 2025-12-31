@@ -131,6 +131,12 @@ export const Home: React.FC<Props> = ({ onViewChange }) => {
           >
             Sign in to Save Solutions
           </button>
+          <button
+            onClick={() => onViewChange?.('demo')}
+            className="border border-emerald-200 text-emerald-700 px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap hover:bg-emerald-50"
+          >
+            Try Demo Chat
+          </button>
         </div>
         {/* 搜索提示 */}
         <div className="text-xs text-gray-400">

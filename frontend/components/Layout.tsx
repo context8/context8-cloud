@@ -48,6 +48,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
             >
                 Dashboard
             </span>
+            <span 
+                className={`ml-2 text-gray-400 hover:text-emerald-600 transition-colors ${currentView === 'demo' ? 'text-emerald-600 font-medium' : ''}`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onViewChange('demo');
+                }}
+            >
+                Demo
+            </span>
           </div>
         </div>
 
@@ -55,7 +64,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
           <nav className="hidden md:flex items-center gap-6 text-gray-500 font-medium">
             <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Plans</a>
             <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Learn</a>
-            <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Try Live</a>
+            <button
+              type="button"
+              onClick={() => onViewChange('demo')}
+              className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4"
+            >
+              Try Live
+            </button>
             <a href="#" className="hover:text-emerald-600 transition-colors decoration-emerald-500/30 hover:underline underline-offset-4">Install</a>
           </nav>
           {user ? (

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
+import { DemoChat } from './pages/DemoChat';
 import { View } from './types';
 
 type Session = {
@@ -53,10 +54,10 @@ const App: React.FC = () => {
       user={session ? { email: session.email } : undefined}
       onLogout={session ? handleLogout : undefined}
     >
-      {currentView === 'home' ? (
-        <Home onViewChange={setCurrentView} />
-      ) : (
-        <Dashboard sessionState={sessionValue} />
+      {currentView === 'home' && <Home onViewChange={setCurrentView} />}
+      {currentView === 'dashboard' && <Dashboard sessionState={sessionValue} />}
+      {currentView === 'demo' && (
+        <DemoChat sessionState={sessionValue} onViewChange={setCurrentView} />
       )}
     </Layout>
   );
