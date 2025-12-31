@@ -211,3 +211,4 @@ tailwindcss + shadcn
 19. Demo Chat 使用 OpenRouter 前端直连：环境变量 `VITE_OPENROUTER_API_KEY/MODEL/BASE_URL/REFERRER`，通过 function call 调用 `/search`，认证优先 `X-API-Key` 其次 `Bearer`。
 20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 绿色主题定制后嵌入到 `frontend/pages/DemoChat.tsx`。
 21. 前端主题由 App 统一管理并持久化 `localStorage`，Layout 提供全局灯光切换，Home/Dashboard/DemoChat 统一按 `ThemeMode` 渲染。
+22. 前端显示文案统一为英文，避免混入非英文可见文本。
