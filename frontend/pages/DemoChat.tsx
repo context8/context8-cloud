@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { runOpenRouterAssistant } from '../services/openrouterAssistant';
+import { GeminiChatInput } from '../components/GeminiChatInput';
+import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
 import { SearchResult, View } from '../types';
-import { AlertTriangle, Database, Loader2, Sparkles, Terminal } from 'lucide-react';
+import { AlertTriangle, Database, Terminal } from 'lucide-react';
+
+type ThemeMode = 'light' | 'dark';
 
 type SessionState = {
   session: { token: string; email: string } | null;
@@ -17,93 +21,25 @@ type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  thought?: string;
+  thoughtDuration?: number;
   hits?: SearchResult[];
-  toolTrace?: string[];
 };
 
-const suggestions = [
-  'TypeError: cannot read properties of undefined',
-  'Build fails with vite: failed to resolve import',
-  'Postgres connection timeout on deploy',
-  'CORS blocked when calling API',
-];
-
-const ChatInput: React.FC<{ onSend: (value: string) => void; disabled?: boolean }> = ({ onSend, disabled }) => {
-  const [input, setInput] = useState('');
-
-  const submit = (value?: string) => {
-    const payload = (value ?? input).trim();
-    if (!payload || disabled) return;
-    onSend(payload);
-    setInput('');
-  };
-
-  return (
-    <div className="w-full">
-      <div className="mb-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {suggestions.map((text) => (
-          <button
-            key={text}
-            onClick={() => submit(text)}
-            className="flex items-center gap-2 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap bg-white border-emerald-100 text-emerald-700 hover:bg-emerald-50"
-          >
-            <Sparkles size={12} />
-            {text}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        className="relative border rounded-2xl p-4 shadow-sm bg-white border-emerald-100 focus-within:border-emerald-300"
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Describe the bug or paste the error message..."
-          rows={3}
-          className="w-full bg-transparent border-none outline-none resize-none text-sm leading-relaxed text-slate-800 placeholder-slate-400"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              submit();
-            }
-          }}
-        />
-
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-100">
-          <div className="text-xs text-slate-400">
-            Enter to send • Shift+Enter for newline
-          </div>
-          <button
-            type="submit"
-            disabled={!input.trim() || disabled}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              input.trim() && !disabled
-                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                : 'bg-emerald-50 text-emerald-300'
-            }`}
-          >
-            Send
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([{
+const initialMessages: ChatMessage[] = [
+  {
     id: 'welcome',
     role: 'assistant',
     content: 'Describe your bug and I will search Context8 solutions before answering.',
-  }]);
+  },
+];
+
+export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [theme, setTheme] = useState<ThemeMode>('light');
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const auth = useMemo(() => ({
     token: sessionState.session?.token,
@@ -117,8 +53,12 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
   }, [auth.apiKey, auth.token]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, status]);
+
+  const updateMessage = (id: string, update: Partial<ChatMessage>) => {
+    setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, ...update } : msg)));
+  };
 
   const handleSend = async (prompt: string) => {
     setError(null);
@@ -130,157 +70,205 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange }) => {
       content: prompt,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const assistantId = `assistant-${Date.now() + 1}`;
+    const assistantMessage: ChatMessage = {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      thought: '',
+      thoughtDuration: 0,
+    };
+
+    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+
+    const startTime = Date.now();
 
     try {
       const result = await runOpenRouterAssistant({ prompt, auth });
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: result.reply,
-        hits: result.hits,
-        toolTrace: result.toolTrace,
-      };
+      const duration = (Date.now() - startTime) / 1000;
+      const trace = result.toolTrace.length > 0
+        ? result.toolTrace.join('\n')
+        : 'No tool calls were made.';
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      updateMessage(assistantId, {
+        content: result.reply,
+        thought: trace,
+        thoughtDuration: Number(duration.toFixed(1)),
+        hits: result.hits,
+      });
+
       setStatus('idle');
     } catch (err: any) {
       setStatus('error');
       setError(err?.message || 'Assistant failed');
+      updateMessage(assistantId, {
+        content: 'I hit an error while contacting the assistant. Please try again.',
+      });
     }
   };
 
+  const resetChat = () => {
+    setMessages(initialMessages);
+    setError(null);
+    setStatus('idle');
+  };
+
+  const isDark = theme === 'dark';
+  const latestHits = messages
+    .slice()
+    .reverse()
+    .find((msg) => msg.hits && msg.hits.length > 0)?.hits;
+
   return (
-    <div className="flex flex-col gap-8 pb-16">
-      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 items-start">
-        <div className="bg-white border border-emerald-100 rounded-3xl p-8 shadow-sm">
-          <div className="flex items-center gap-2 text-emerald-600 text-sm font-semibold uppercase tracking-wide">
-            <Terminal size={16} /> Context8 Demo
+    <div className={`rounded-3xl border ${isDark ? 'border-slate-800 bg-slate-950 text-slate-100' : 'border-emerald-100 bg-white text-slate-900'} shadow-sm overflow-hidden`}>
+      <header className={`flex items-center justify-between px-6 py-4 border-b backdrop-blur-md ${isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-white/80 border-emerald-100'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg ${isDark ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-500/30' : 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-200'}`}>
+            C
           </div>
-          <h1 className="text-3xl font-semibold text-slate-900 mt-4">
-            LLM-assisted bug triage with real solution retrieval
-          </h1>
-          <p className="text-slate-500 mt-3 text-base">
-            This demo routes your bug report through an OpenRouter agent, forces a Context8 search tool call, and responds with grounded fixes.
-          </p>
+          <div>
+            <h1 className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Context8 Demo Assistant</h1>
+            <p className={`text-[10px] font-mono tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OPENROUTER • FUNCTION CALL • SEARCH</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className={`p-2 rounded-full transition-colors border ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'}`}
+            title="Toggle Theme"
+          >
+            {isDark ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M12 21v-1m0-5a3 3 0 110-6 3 3 0 010 6z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={resetChat}
+            className={`px-3 py-1 text-xs rounded-full transition-colors border ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'}`}
+          >
+            New Chat
+          </button>
+        </div>
+      </header>
+
+      <div className={`border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-emerald-100 bg-emerald-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>
+        <div className="flex items-center gap-2">
+          <Terminal size={14} className="text-emerald-500" />
+          <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>LLM tool-driven triage</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Database size={14} className="text-emerald-500" />
+          <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Search auth: {authLabel}</span>
+        </div>
+        {!auth.apiKey && !auth.token && (
+          <div className="flex items-center gap-2 text-amber-500">
+            <AlertTriangle size={14} /> Login or set API key for private results.
+          </div>
+        )}
+      </div>
+
+      <main className={`min-h-[520px] max-h-[70vh] overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+        <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div
+                className={`max-w-[90%] transition-all duration-300 ${
+                  msg.role === 'user'
+                    ? `${isDark ? 'bg-slate-900 shadow-sm' : 'bg-emerald-50 shadow-sm'} p-4 rounded-2xl rounded-tr-none ${isDark ? 'text-slate-100' : 'text-emerald-900'}`
+                    : 'w-full'
+                }`}
+              >
+                {msg.role === 'assistant' && msg.thought && (
+                  <GeminiReasoningBlock
+                    title="Retrieval steps"
+                    detail={msg.thought}
+                    duration={msg.thoughtDuration}
+                    theme={theme}
+                  />
+                )}
+                <div className={`text-sm md:text-base leading-relaxed whitespace-pre-wrap ${
+                  msg.role === 'assistant' ? (isDark ? 'text-slate-200' : 'text-slate-800') : ''
+                }`}>
+                  {msg.content || (status === 'loading' && msg.role === 'assistant' ? <span className="animate-pulse">...</span> : msg.content)}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} className="h-4" />
+        </div>
+      </main>
+
+      <div className={isDark ? 'bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-4' : 'bg-gradient-to-t from-white via-white to-transparent pt-4'}>
+        <GeminiChatInput onSend={handleSend} disabled={status === 'loading'} theme={theme} />
+      </div>
+
+      <section className={`border-t ${isDark ? 'border-slate-800 bg-slate-950' : 'border-emerald-100 bg-emerald-50/40'} px-6 py-6`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Database size={16} className="text-emerald-500" />
+              <h3 className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Context8 Matches</h3>
+            </div>
+            <span className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-500'}>
+              {latestHits?.length || 0} results
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {latestHits && latestHits.length > 0 ? (
+              latestHits.slice(0, 4).map((hit) => (
+                <div
+                  key={hit.id}
+                  className={`rounded-lg p-4 transition-colors ${
+                    isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500/40' : 'bg-white border border-emerald-100 hover:border-emerald-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      {hit.errorType || 'Unknown'}
+                    </span>
+                    <span className={isDark ? 'text-[10px] text-slate-500' : 'text-[10px] text-slate-400'}>
+                      {hit.createdAt ? new Date(hit.createdAt).toLocaleDateString() : 'Unknown'}
+                    </span>
+                  </div>
+                  <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                    {hit.title || 'Untitled'}
+                  </p>
+                  <p className={`text-xs mt-2 line-clamp-3 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {hit.preview || 'No preview available'}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className={`col-span-full py-10 text-center border-2 border-dashed rounded-xl ${isDark ? 'border-slate-800 text-slate-500' : 'border-emerald-100 text-slate-500'}`}>
+                Ask a bug question to see matching solutions.
+              </div>
+            )}
+          </div>
+
           <div className="mt-6 flex flex-wrap gap-3">
             <button
-              className="bg-emerald-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-700"
               onClick={() => onViewChange('dashboard')}
+              className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isDark ? 'bg-slate-900 text-slate-200 border border-slate-700 hover:bg-slate-800' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
             >
               Open Dashboard
             </button>
             <button
-              className="border border-emerald-200 text-emerald-700 px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-50"
               onClick={() => onViewChange('home')}
+              className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isDark ? 'border border-slate-700 text-slate-300 hover:bg-slate-900' : 'border border-emerald-200 text-emerald-700 hover:bg-emerald-50'}`}
             >
               Back to Home
             </button>
           </div>
-        </div>
 
-        <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 rounded-3xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-emerald-600 font-semibold">
-            <Database size={16} /> Live Signals
-          </div>
-          <div className="mt-4 grid gap-4">
-            <div className="bg-white rounded-2xl border border-emerald-100 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Search Auth</p>
-              <p className="text-sm text-slate-700 mt-1">{authLabel}</p>
-              {!auth.apiKey && !auth.token && (
-                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                  <AlertTriangle size={12} /> Login or set API key to fetch private solutions.
-                </p>
-              )}
-            </div>
-            <div className="bg-white rounded-2xl border border-emerald-100 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Assistant Status</p>
-              <p className="text-sm text-slate-700 mt-1">
-                {status === 'loading' ? 'Thinking...' : status === 'error' ? 'Error' : 'Ready'}
-              </p>
-              {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
-        <div className="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col gap-6 min-h-[520px]">
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-50 text-slate-800 border border-emerald-100'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            {status === 'loading' && (
-              <div className="flex justify-start">
-                <div className="bg-emerald-50 border border-emerald-100 text-slate-600 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" /> Thinking with OpenRouter...
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          <ChatInput onSend={handleSend} disabled={status === 'loading'} />
-        </div>
-
-        <div className="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Latest Context Matches</h2>
-          {messages
-            .slice()
-            .reverse()
-            .find((msg) => msg.hits && msg.hits.length > 0)?.hits?.slice(0, 5)
-            ?.map((hit) => (
-              <div key={hit.id} className="border border-emerald-100 rounded-2xl p-4 hover:shadow-sm transition-shadow">
-                <p className="text-sm font-semibold text-slate-900">
-                  {hit.title || 'Untitled'}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">{hit.errorType || 'Unknown type'}</p>
-                <p className="text-xs text-slate-600 mt-3 line-clamp-3">
-                  {hit.preview || 'No preview available'}
-                </p>
-                {hit.tags && hit.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {hit.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          {!messages.some((msg) => msg.hits && msg.hits.length > 0) && (
-            <div className="text-sm text-slate-400">
-              Ask a bug question to see matching solutions.
-            </div>
+          {error && (
+            <p className="mt-4 text-xs text-red-500">{error}</p>
           )}
-
-          <div className="border-t border-emerald-100 pt-4">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tool Trace</h3>
-            <div className="mt-2 space-y-2">
-              {messages
-                .slice()
-                .reverse()
-                .find((msg) => msg.toolTrace && msg.toolTrace.length > 0)?.toolTrace?.map((trace) => (
-                  <div key={trace} className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1">
-                    {trace}
-                  </div>
-                ))}
-              {!messages.some((msg) => msg.toolTrace && msg.toolTrace.length > 0) && (
-                <p className="text-xs text-slate-400">No tool calls yet.</p>
-              )}
-            </div>
-          </div>
         </div>
       </section>
     </div>
