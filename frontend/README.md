@@ -4,24 +4,25 @@
 
 # Context8 CLI Frontend
 
-Minimal UI for Context8 cloud：邮箱验证码登录 → 生成 API Key → 保存/搜索 solutions。
+Minimal UI for Context8 Cloud: email verification login → create API key → save/search solutions.
 
-## 配置
+## Setup
 1) `npm install`
-2) `.env.local`：
+2) `.env.local`:
 ```
-VITE_API_BASE=http://localhost:8000   # 或你的部署地址
+VITE_API_BASE=http://localhost:8000   # or your deployment base URL
 ```
 
-## 运行
+## Run
 ```
 npm run dev
 ```
-浏览器打开 `http://localhost:5173`。
+Open `http://localhost:5173` in your browser.
 
-## 使用流程
-1) 输入邮箱，点击“发送验证码”
-2) 输入验证码，点击“校验并登录”（会保存 JWT）
-3) 可选：创建 API Key，后续用 `X-API-Key` 访问
-4) 在 “保存 Solution” 中填写必填字段，提交后会写入当前用户的 solutions
-5) “搜索” 区域按关键字搜索个人 solutions（向量优先，失败回退关键词）
+## Usage
+1) Enter email and click “Send Code”
+2) Enter verification code and click “Verify and Login” (JWT is saved)
+3) Optional: create an API key and use `X-API-Key` for requests
+4) Fill required fields in “Save Solution” to write solutions
+5) Use “Search” to query your solutions (vector first, keyword fallback)
+6) “Demo Chat” calls the backend LLM proxy and uses function call to search Context8 solutions

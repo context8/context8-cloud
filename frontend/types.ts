@@ -4,7 +4,8 @@ export interface ApiKey {
   createdAt?: string;
 }
 
-export type View = 'home' | 'dashboard';
+export type View = 'home' | 'dashboard' | 'demo';
+export type ThemeMode = 'light' | 'dark';
 
 export interface SolutionInput {
   title: string;
@@ -34,10 +35,10 @@ export interface Solution {
 }
 
 export interface SearchResult {
-  id: string;                  // 唯一必需字段
-  title?: string;              // 可选，缺失时显示 "Untitled"
-  errorType?: string;          // 可选，缺失时显示 "Unknown"
-  tags?: string[];             // 可选，缺失时显示 "No tags"
-  createdAt?: string;          // 可选，解析失败时显示 "Unknown date"
-  preview?: string;            // 可选，缺失时显示 "No description"
+  id: string;                  // Required
+  title?: string;              // Optional; fallback to "Untitled"
+  errorType?: string;          // Optional; fallback to "Unknown"
+  tags?: string[];             // Optional; fallback to "No tags"
+  createdAt?: string;          // Optional; fallback to "Unknown date"
+  preview?: string;            // Optional; fallback to "No description"
 }
