@@ -128,7 +128,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme })
           </div>
           <div>
             <h1 className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Context8 Demo Assistant</h1>
-            <p className={`text-[10px] font-mono tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OPENROUTER • FUNCTION CALL • SEARCH</p>
+            <p className={`text-[10px] font-mono tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>LLM PROXY • FUNCTION CALL • SEARCH</p>
           </div>
         </div>
         <button
