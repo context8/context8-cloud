@@ -21,16 +21,18 @@ const authHeaders = (auth: Auth) => {
 export const runOpenRouterAssistant = async ({
   prompt,
   auth,
+  limit,
   signal,
 }: {
   prompt: string;
   auth: Auth;
+  limit?: number;
   signal?: AbortSignal;
 }): Promise<AssistantResult> => {
   const res = await fetch(`${API_BASE}/llm/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(auth) },
-    body: JSON.stringify({ prompt, limit: 5 }),
+    body: JSON.stringify({ prompt, limit: limit ?? 5 }),
     signal,
   });
 

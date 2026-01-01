@@ -6,6 +6,10 @@ interface GeminiChatInputProps {
   disabled?: boolean;
   theme: ThemeMode;
   resetToken?: number;
+  deepSearchEnabled?: boolean;
+  deepThinkingEnabled?: boolean;
+  onToggleDeepSearch?: () => void;
+  onToggleDeepThinking?: () => void;
 }
 
 const suggestions = [
@@ -20,6 +24,10 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
   disabled,
   theme,
   resetToken,
+  deepSearchEnabled,
+  deepThinkingEnabled,
+  onToggleDeepSearch,
+  onToggleDeepThinking,
 }) => {
   const [input, setInput] = useState('');
 
@@ -51,8 +59,8 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
             onClick={() => handleSuggestionClick(s.text)}
             className={`flex items-center gap-2 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
               isDark
-                ? 'bg-slate-900/80 border-slate-800 text-emerald-200 hover:bg-slate-800'
-                : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:bg-slate-800'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             <span className="text-emerald-400 text-xs">{s.icon}</span>
@@ -65,10 +73,46 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
         onSubmit={handleSubmit}
         className={`relative border rounded-2xl p-4 shadow-sm transition-all duration-300 ${
           isDark
-            ? 'bg-slate-950 border-slate-800 focus-within:border-emerald-500'
-            : 'bg-white border-emerald-100 focus-within:border-emerald-300'
+            ? 'bg-slate-950 border-slate-800 focus-within:border-slate-600'
+            : 'bg-white border-slate-200 focus-within:border-slate-300'
         }`}
       >
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <button
+            type="button"
+            onClick={onToggleDeepSearch}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+              deepSearchEnabled
+                ? isDark
+                  ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : isDark
+                  ? 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            Deep Search
+          </button>
+          <button
+            type="button"
+            onClick={onToggleDeepThinking}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+              deepThinkingEnabled
+                ? isDark
+                  ? 'bg-indigo-500/20 text-indigo-200 border-indigo-500/40'
+                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                : isDark
+                  ? 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            Deep Thinking
+          </button>
+          <span className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Toggle to widen retrieval or add deeper reasoning.
+          </span>
+        </div>
+
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -89,7 +133,7 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
 
         <div
           className={`flex items-center justify-between mt-2 pt-2 border-t transition-colors ${
-            isDark ? 'border-slate-800/60' : 'border-emerald-100'
+            isDark ? 'border-slate-800/60' : 'border-slate-200'
           }`}
         >
           <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
