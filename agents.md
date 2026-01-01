@@ -212,3 +212,4 @@ tailwindcss + shadcn
 20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 绿色主题定制后嵌入到 `frontend/pages/DemoChat.tsx`。
 21. 前端主题由 App 统一管理并持久化 `localStorage`，Layout 提供全局灯光切换，Home/Dashboard/DemoChat 统一按 `ThemeMode` 渲染。
 22. 前端显示文案统一为英文，避免混入非英文可见文本。
+23. Demo Chat 前端不直连 OpenRouter，统一调用后端 `/llm/chat` 代理；OpenRouter 密钥只保存在后端环境变量中。
