@@ -2,6 +2,7 @@ export interface ApiKey {
   id: string;
   name: string;
   createdAt?: string;
+  isPublic?: boolean;
 }
 
 export type View = 'home' | 'dashboard' | 'demo';
@@ -29,9 +30,16 @@ export interface Solution {
   solution?: string;
   projectPath?: string | null;
   isPublic?: boolean;
+  apiKeyId?: string;
+  apiKeyName?: string;
   author?: string;
   views?: number;
   upvotes?: number;
+}
+
+export interface SearchResponse {
+  total: number;
+  results: SearchResult[];
 }
 
 export interface SearchResult {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
-import { Dashboard } from './pages/Dashboard';
+import { DashboardContainer } from './pages/Dashboard/DashboardContainer';
 import { DemoChat } from './pages/DemoChat';
 import { ThemeMode, View } from './types';
 
@@ -73,7 +73,7 @@ const App: React.FC = () => {
     >
       {currentView === 'home' && <Home onViewChange={setCurrentView} theme={theme} />}
       {currentView === 'dashboard' && (
-        <Dashboard sessionState={sessionValue} theme={theme} />
+        <DashboardContainer sessionState={sessionValue} theme={theme} />
       )}
       {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} />}
     </Layout>
