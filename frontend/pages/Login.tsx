@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../constants';
 import { Mail, ArrowRight, Check, AlertCircle, Clock } from 'lucide-react';
 
 interface LoginProps {
@@ -13,8 +14,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
-
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
   // Countdown timer for rate limiting
   React.useEffect(() => {
@@ -79,10 +78,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       if (!response.ok) {
         throw new Error(data.detail || 'Invalid verification code');
       }
-
-      // Store token in localStorage
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
 
       onLoginSuccess(data.token, data.user);
     } catch (err: any) {

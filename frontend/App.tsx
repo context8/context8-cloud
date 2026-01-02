@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { DashboardContainer } from './pages/Dashboard/DashboardContainer';
+import { Login } from './pages/Login';
 import { DemoChat } from './pages/DemoChat';
 import { ThemeMode, View } from './types';
 
@@ -48,6 +49,13 @@ const App: React.FC = () => {
     setCurrentView('home');
   };
 
+  const handleLoginSuccess = (token: string, user: { id: string; email: string }) => {
+    setSession({ token, email: user.email });
+    localStorage.setItem(STORAGE_KEYS.token, token);
+    localStorage.setItem(STORAGE_KEYS.email, user.email);
+    setCurrentView('dashboard');
+  };
+
   const handleToggleTheme = () => {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
@@ -72,6 +80,9 @@ const App: React.FC = () => {
       hideChrome={currentView === 'demo'}
     >
       {currentView === 'home' && <Home onViewChange={setCurrentView} theme={theme} />}
+      {currentView === 'login' && (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )}
       {currentView === 'dashboard' && (
         <DashboardContainer sessionState={sessionValue} theme={theme} />
       )}

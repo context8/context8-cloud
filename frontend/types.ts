@@ -5,7 +5,7 @@ export interface ApiKey {
   isPublic?: boolean;
 }
 
-export type View = 'home' | 'dashboard' | 'demo';
+export type View = 'home' | 'dashboard' | 'demo' | 'login';
 export type ThemeMode = 'light' | 'dark';
 
 export interface SolutionInput {
