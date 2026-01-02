@@ -5,7 +5,7 @@ FastAPI + PostgreSQL backend (and a simple React/Vite frontend) for Context8 clo
 ## Features
 - Email code login (resend) and JWT sessions
 - API key issuance (`/apikeys`) for email-verified users (hashed with SHA256 in DB)
-- Solution CRUD + semantic/keyword search (per-user isolation)
+- Solution CRUD + semantic/keyword search (per-API-key isolation with public sharing)
 - Optional embedding + vector search (pgvector) with fallback keyword search
 - Modal-friendly deployment (`modal deploy modal_app.py`)
 
@@ -16,13 +16,14 @@ FastAPI + PostgreSQL backend (and a simple React/Vite frontend) for Context8 clo
 - `POST /apikeys` – create API key (Bearer JWT required; only email-verified users)
 - `GET /apikeys` / `DELETE /apikeys/{id}` – list/revoke keys
 - `POST /solutions` – save solution (requires `Authorization: Bearer <jwt>` or `X-API-Key: <key>`)
-- `GET /solutions/{id}` / `GET /solutions` – fetch/list solutions (per-user)
+- `GET /solutions/{id}` / `GET /solutions` – fetch/list solutions (per-API-key)
 - `DELETE /solutions/{id}` – delete solution
 - `POST /search` – search solutions; `query` must be non-empty (min length 1)
 
 Auth rules:
 - Bearer JWT: signed with `JWT_SECRET`/`JWT_ALG`, audience `context8-api`, issuer `context8.com`, email must be verified.
-- API Key: `X-API-Key: <plaintext>`; hashed (SHA256) in `api_keys.key_hash`, `revoked=false`, user must be `email_verified=true`.
+- API Key: `X-API-Key: <plaintext>` (or `X-API-Keys: k1,k2` for search); hashed (SHA256) in `api_keys.key_hash`, `revoked=false`, user must be `email_verified=true`.
+- Public visibility: `solutions.is_public` makes solutions searchable without credentials; `api_keys.is_public` is the default for new solutions.
 
 ## Environment Variables (required/important)
 - `DATABASE_URL` – PostgreSQL (Neon) URL, include `sslmode=require`
