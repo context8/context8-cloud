@@ -132,7 +132,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </div>
           <div className={`flex items-center justify-center font-medium px-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>or</div>
           <button
-            onClick={() => onViewChange?.('dashboard')}
+            onClick={() => onViewChange?.('login')}
             className={`px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
           >
             Sign in to Save Solutions
