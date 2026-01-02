@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { runOpenRouterAssistant } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
-import { SearchResult, ThemeMode, View } from '../types';
+import { SearchResult, ThemeMode } from '../types';
 import { AlertTriangle, Database, Terminal } from 'lucide-react';
 
 type SessionState = {
@@ -12,7 +12,6 @@ type SessionState = {
 
 type Props = {
   sessionState: SessionState;
-  onViewChange: (view: View) => void;
   theme: ThemeMode;
 };
 
@@ -37,7 +36,7 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme }) => {
+export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -153,14 +152,10 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme })
   };
 
   const isDark = theme === 'dark';
-  const latestHits = messages
-    .slice()
-    .reverse()
-    .find((msg) => msg.hits && msg.hits.length > 0)?.hits;
 
   return (
-    <div className={`rounded-3xl border ${isDark ? 'border-slate-800 bg-slate-950 text-slate-100' : 'border-slate-200 bg-white text-slate-900'} shadow-sm overflow-hidden`}>
-      <header className={`flex items-center justify-between px-6 py-4 border-b backdrop-blur-md ${isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
+    <div className={`min-h-screen w-full ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
+      <header className={`flex items-center justify-between px-6 py-6 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white font-semibold text-lg shadow-lg ${isDark ? 'bg-gradient-to-br from-slate-600 to-slate-800 shadow-slate-900/40' : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-200'}`}>
             C
@@ -196,9 +191,9 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme })
 
       <main
         ref={chatScrollRef}
-        className={`relative min-h-[520px] max-h-[70vh] overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}
+        className={`relative min-h-[calc(100vh-220px)] max-h-[calc(100vh-220px)] overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}
       >
-        <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -290,71 +285,11 @@ export const DemoChat: React.FC<Props> = ({ sessionState, onViewChange, theme })
           onToggleDeepThinking={() => setDeepThinkingEnabled((prev) => !prev)}
         />
       </div>
-
-      <section className={`border-t ${isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50/40'} px-6 py-6`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Database size={16} className="text-emerald-500" />
-              <h3 className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Context8 Matches</h3>
-            </div>
-            <span className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-500'}>
-              {latestHits?.length || 0} results
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {latestHits && latestHits.length > 0 ? (
-              latestHits.slice(0, 4).map((hit) => (
-                <div
-                  key={hit.id}
-                  className={`rounded-lg p-4 transition-colors ${
-                    isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500/40' : 'bg-white border border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                      {hit.errorType || 'Unknown'}
-                    </span>
-                    <span className={isDark ? 'text-[10px] text-slate-500' : 'text-[10px] text-slate-400'}>
-                      {hit.createdAt ? new Date(hit.createdAt).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                  <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-                    {hit.title || 'Untitled'}
-                  </p>
-                  <p className={`text-xs mt-2 line-clamp-3 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {hit.preview || 'No preview available'}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className={`col-span-full py-10 text-center border-2 border-dashed rounded-xl ${isDark ? 'border-slate-800 text-slate-500' : 'border-emerald-100 text-slate-500'}`}>
-                Ask a bug question to see matching solutions.
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => onViewChange('dashboard')}
-              className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isDark ? 'bg-slate-900 text-slate-200 border border-slate-700 hover:bg-slate-800' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-            >
-              Open Dashboard
-            </button>
-            <button
-              onClick={() => onViewChange('home')}
-              className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isDark ? 'border border-slate-700 text-slate-300 hover:bg-slate-900' : 'border border-slate-200 text-slate-700 hover:bg-slate-100'}`}
-            >
-              Back to Home
-            </button>
-          </div>
-
-          {error && (
-            <p className="mt-4 text-xs text-red-500">{error}</p>
-          )}
+      {error && (
+        <div className="max-w-4xl mx-auto px-6 pb-6">
+          <p className="text-xs text-red-500">{error}</p>
         </div>
-      </section>
+      )}
     </div>
   );
 };

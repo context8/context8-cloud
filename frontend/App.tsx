@@ -69,18 +69,13 @@ const App: React.FC = () => {
       onLogout={session ? handleLogout : undefined}
       theme={theme}
       onToggleTheme={handleToggleTheme}
+      hideChrome={currentView === 'demo'}
     >
       {currentView === 'home' && <Home onViewChange={setCurrentView} theme={theme} />}
       {currentView === 'dashboard' && (
         <Dashboard sessionState={sessionValue} theme={theme} />
       )}
-      {currentView === 'demo' && (
-        <DemoChat
-          sessionState={sessionValue}
-          onViewChange={setCurrentView}
-          theme={theme}
-        />
-      )}
+      {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} />}
     </Layout>
   );
 };

@@ -213,3 +213,4 @@ tailwindcss + shadcn
 22. 前端显示文案统一为英文，避免混入非英文可见文本。
 23. Demo Chat 前端不直连 OpenRouter，统一调用后端 `/llm/chat` 代理；OpenRouter 密钥只保存在后端环境变量中。
 24. Demo Chat 支持 Deep Search/Deep Thinking 开关：Deep Search 提高检索条数，Deep Thinking 追加更深入诊断指令。
+25. Demo 页面在 `Layout` 中启用 `hideChrome` 全屏渲染，不显示全站 header/footer/辅助导航与匹配列表区。
