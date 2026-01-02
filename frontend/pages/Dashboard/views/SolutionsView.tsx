@@ -171,7 +171,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
             No solutions found
           </h3>
           <p className={`mb-4 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>
-            {selectedApiKeyIds.length > 0 || publicFilter !== 'all'
+            {extraKeyList.length > 0 || publicFilter !== 'all'
               ? 'Try adjusting your filters'
               : 'Create your first solution to get started'}
           </p>
