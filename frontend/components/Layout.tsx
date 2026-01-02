@@ -114,9 +114,12 @@ export const Layout: React.FC<LayoutProps> = ({
                 </button>
               </div>
             ) : (
-              <button className={`px-4 py-2 rounded-md font-medium text-sm flex items-center gap-1.5 transition-colors shadow-sm ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'}`}>
+              <button
+                className={`px-4 py-2 rounded-md font-medium text-sm flex items-center gap-1.5 transition-colors shadow-sm ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'}`}
+                onClick={() => onViewChange('dashboard')}
+              >
                 <Plus size={16} />
-                Add Docs
+                Sign In
               </button>
             )}
           </div>
