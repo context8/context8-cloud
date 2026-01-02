@@ -15,9 +15,11 @@ FastAPI + PostgreSQL backend (and a simple React/Vite frontend) for Context8 clo
 - `GET /auth/email/me` – current user info (requires JWT)
 - `POST /apikeys` – create API key (Bearer JWT required; only email-verified users)
 - `GET /apikeys` / `DELETE /apikeys/{id}` – list/revoke keys
+- `PATCH /apikeys/{id}` – update API key public state
 - `POST /solutions` – save solution (requires `Authorization: Bearer <jwt>` or `X-API-Key: <key>`)
 - `GET /solutions/{id}` / `GET /solutions` – fetch/list solutions (per-API-key)
 - `DELETE /solutions/{id}` – delete solution
+- `PATCH /solutions/{id}` – update solution public state
 - `POST /search` – search solutions; `query` must be non-empty (min length 1)
 
 Auth rules:
