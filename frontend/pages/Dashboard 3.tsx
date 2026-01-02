@@ -295,19 +295,25 @@ export const Dashboard: React.FC<Props> = ({ sessionState }) => {
                   <div className="text-sm font-medium text-gray-800">{key.name}</div>
                   <div className="text-xs text-gray-500">{key.createdAt || 'created'}</div>
                 </div>
+                <span className="text-xs text-gray-500">Not recoverable</span>
+              </div>
+            ))}
+            {apiKey && (
+              <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md p-2 flex items-center justify-between gap-3">
+                <span>Current X-API-Key: {apiKey.slice(0, 8)}...</span>
                 <button
-                  className="text-gray-400 hover:text-emerald-600"
+                  className="text-emerald-700 hover:text-emerald-900"
                   onClick={() => {
-                    navigator.clipboard.writeText(apiKey || '');
+                    navigator.clipboard.writeText(apiKey);
                   }}
                 >
                   <Copy size={14} />
                 </button>
               </div>
-            ))}
-            {apiKey && (
-              <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md p-2">
-                Current X-API-Key: {apiKey.slice(0, 8)}...
+            )}
+            {!apiKey && (
+              <div className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-md p-2">
+                Stored keys cannot be recovered after creation.
               </div>
             )}
           </div>

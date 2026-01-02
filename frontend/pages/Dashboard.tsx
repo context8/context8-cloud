@@ -359,6 +359,32 @@ export const Dashboard: React.FC<Props> = ({ sessionState, theme }) => {
                 </div>
               </div>
 
+              <div className={`mb-6 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border px-4 py-3 ${isDark ? 'border-slate-800 bg-slate-950' : 'border-gray-100 bg-gray-50'}`}>
+                <div className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>Current Key</div>
+                {apiKey ? (
+                  <div className="flex items-center gap-2">
+                    <code className={`px-2.5 py-1 rounded-md text-xs font-mono border ${isDark ? 'bg-slate-900 text-slate-300 border-slate-800' : 'bg-white text-gray-600 border-gray-200'}`}>
+                      {apiKey.slice(0, 12)}...
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(apiKey);
+                        alert('API Key copied to clipboard!');
+                      }}
+                      className={`transition-colors ${isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-gray-500 hover:text-gray-900'}`}
+                      title="Copy API Key"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>No local key stored</span>
+                )}
+                <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                  Stored keys cannot be recovered after creation.
+                </span>
+              </div>
+
               {apiKeys.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -377,21 +403,7 @@ export const Dashboard: React.FC<Props> = ({ sessionState, theme }) => {
                           <td className={`py-5 px-2 font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{key.name}</td>
                           <td className="py-5 px-2">
                             <div className="flex items-center gap-2">
-                              <code className={`px-2.5 py-1 rounded-md text-xs font-mono border ${isDark ? 'bg-slate-900 text-slate-300 border-slate-800' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                                {apiKey?.slice(0, 12)}...
-                              </code>
-                              <button
-                                onClick={() => {
-                                  if (apiKey) {
-                                    navigator.clipboard.writeText(apiKey);
-                                    alert('API Key copied to clipboard!');
-                                  }
-                                }}
-                                className={`transition-colors opacity-0 group-hover:opacity-100 ${isDark ? 'text-slate-500 hover:text-emerald-300' : 'text-gray-400 hover:text-gray-900'}`}
-                                title="Copy API Key"
-                              >
-                                <Copy size={14} />
-                              </button>
+                              <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Not recoverable</span>
                             </div>
                           </td>
                           <td className={`py-5 px-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
