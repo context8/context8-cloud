@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { runOpenRouterAssistant } from '../services/openrouterAssistant';
+import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
 import { SearchResult, ThemeMode } from '../types';
@@ -47,6 +47,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [deepSearchEnabled, setDeepSearchEnabled] = useState(true);
   const [deepThinkingEnabled, setDeepThinkingEnabled] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const auth = useMemo(() => ({
     token: sessionState.session?.token,
@@ -135,6 +136,19 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
       });
 
       setStatus('idle');
+
+      // Generate follow-up suggestions
+      generateFollowUpSuggestions({
+        userQuestion: prompt,
+        aiResponse: result.reply,
+        auth,
+      }).then((newSuggestions) => {
+        if (newSuggestions.length > 0) {
+          setSuggestions(newSuggestions);
+        }
+      }).catch((err) => {
+        console.error('Failed to generate suggestions:', err);
+      });
     } catch (err: any) {
       setStatus('error');
       setError(err?.message || 'Assistant failed');
@@ -148,14 +162,15 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
     setMessages(initialMessages);
     setError(null);
     setStatus('idle');
+    setSuggestions([]);
     setResetToken((prev) => prev + 1);
   };
 
   const isDark = theme === 'dark';
 
   return (
-    <div className={`min-h-screen w-full ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
-      <header className={`flex items-center justify-between px-6 py-6 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+    <div className={`h-screen w-full flex flex-col ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
+      <header className={`flex-shrink-0 flex items-center justify-between px-6 py-6 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white font-semibold text-lg shadow-lg ${isDark ? 'bg-gradient-to-br from-slate-600 to-slate-800 shadow-slate-900/40' : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-200'}`}>
             C
@@ -173,7 +188,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
         </button>
       </header>
 
-      <div className={`border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>
+      <div className={`flex-shrink-0 border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>
         <div className="flex items-center gap-2">
           <Terminal size={14} className="text-emerald-500" />
           <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>LLM tool-driven triage</span>
@@ -191,7 +206,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
 
       <main
         ref={chatScrollRef}
-        className={`relative min-h-[calc(100vh-220px)] max-h-[calc(100vh-220px)] overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}
+        className={`flex-1 relative overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}
       >
         <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
           {messages.map((msg) => (
@@ -273,7 +288,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
         )}
       </main>
 
-      <div className={isDark ? 'bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-4' : 'bg-gradient-to-t from-white via-white to-transparent pt-4'}>
+      <div className={`flex-shrink-0 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
         <GeminiChatInput
           onSend={handleSend}
           disabled={status === 'loading'}
@@ -283,13 +298,14 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
           deepThinkingEnabled={deepThinkingEnabled}
           onToggleDeepSearch={() => setDeepSearchEnabled((prev) => !prev)}
           onToggleDeepThinking={() => setDeepThinkingEnabled((prev) => !prev)}
+          suggestions={suggestions}
         />
+        {error && (
+          <div className="max-w-4xl mx-auto px-6 pb-4">
+            <p className="text-xs text-red-500">{error}</p>
+          </div>
+        )}
       </div>
-      {error && (
-        <div className="max-w-4xl mx-auto px-6 pb-6">
-          <p className="text-xs text-red-500">{error}</p>
-        </div>
-      )}
     </div>
   );
 };

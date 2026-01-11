@@ -10,13 +10,14 @@ interface GeminiChatInputProps {
   deepThinkingEnabled?: boolean;
   onToggleDeepSearch?: () => void;
   onToggleDeepThinking?: () => void;
+  suggestions?: string[];
 }
 
-const suggestions = [
-  { icon: '✨', text: 'TypeError: cannot read properties of undefined' },
-  { icon: '🔍', text: 'Build fails with vite: failed to resolve import' },
-  { icon: '🌲', text: 'Postgres connection timeout on deploy' },
-  { icon: '📂', text: 'CORS blocked when calling API' },
+const defaultSuggestions = [
+  'TypeError undefined',
+  'Vite import error',
+  'DB timeout',
+  'CORS blocked',
 ];
 
 export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
@@ -28,8 +29,10 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
   deepThinkingEnabled,
   onToggleDeepSearch,
   onToggleDeepThinking,
+  suggestions,
 }) => {
   const [input, setInput] = useState('');
+  const displaySuggestions = suggestions && suggestions.length > 0 ? suggestions : defaultSuggestions;
 
   useEffect(() => {
     setInput('');
@@ -52,19 +55,18 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
 
   return (
     <div className="px-4 pb-8 max-w-4xl mx-auto w-full">
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {suggestions.map((s) => (
+      <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
+        {displaySuggestions.map((text, index) => (
           <button
-            key={s.text}
-            onClick={() => handleSuggestionClick(s.text)}
-            className={`flex items-center gap-2 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
+            key={`${text}-${index}`}
+            onClick={() => handleSuggestionClick(text)}
+            className={`px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
               isDark
                 ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:bg-slate-800'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <span className="text-emerald-400 text-xs">{s.icon}</span>
-            {s.text}
+            {text}
           </button>
         ))}
       </div>

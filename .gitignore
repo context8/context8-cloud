@@ -5,3 +5,4 @@ agents.md
 .venv/
 node_modules/
 dist/
+/.idea/
