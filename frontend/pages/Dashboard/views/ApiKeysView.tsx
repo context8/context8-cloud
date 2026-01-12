@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Plus, Key } from 'lucide-react';
 import { ApiKeyCard } from '../../../components/Dashboard/ApiKeyCard';
 import { Button } from '../../../components/Common/Button';
@@ -28,6 +28,16 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
   const [newKeyName, setNewKeyName] = useState('');
   const [newKeyIsPublic, setNewKeyIsPublic] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [deleteKeyId, setDeleteKeyId] = useState<string | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const deleteTarget = useMemo(
+    () => apiKeys.find((key) => key.id === deleteKeyId) || null,
+    [apiKeys, deleteKeyId],
+  );
+  const deletePrompt = deleteTarget ? `I CONFIRM DELETE ${deleteTarget.name}` : '';
+  const isDeleteConfirmValid = deleteConfirmText.trim() === deletePrompt;
 
   const handleCreate = async () => {
     if (!newKeyName.trim()) {
@@ -51,12 +61,27 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteRequest = (id: string) => {
+    setDeleteKeyId(id);
+    setDeleteConfirmText('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    if (!isDeleteConfirmValid) {
+      error('Please type the confirmation phrase exactly to continue');
+      return;
+    }
+
+    setIsDeleting(true);
     try {
-      await deleteApiKey(id);
+      await deleteApiKey(deleteTarget.id);
       success('API key deleted successfully');
+      setDeleteKeyId(null);
     } catch (err) {
       error(err instanceof Error ? err.message : 'Failed to delete API key');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -126,7 +151,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
             <ApiKeyCard
               key={apiKey.id}
               apiKey={apiKey}
-              onDelete={handleDelete}
+              onRequestDelete={handleDeleteRequest}
               onTogglePublic={handleTogglePublic}
               theme={theme}
               solutionCount={solutionCounts[apiKey.id]}
@@ -221,6 +246,69 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => !isDeleting && setDeleteKeyId(null)}
+        title="Delete API Key"
+      >
+        {deleteTarget && (
+          <div className="space-y-4">
+            <p className={theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}>
+              Deleting an API key is irreversible.
+            </p>
+            <div className={`rounded-md border px-3 py-2 text-sm ${
+              theme === 'dark'
+                ? 'bg-slate-800 border-slate-700 text-slate-200'
+                : 'bg-gray-50 border-gray-200 text-gray-700'
+            }`}>
+              <p className="font-medium">Public solutions are not deleted.</p>
+              <p className="mt-1">
+                If you want public solutions removed, first switch the key to private, then delete it.
+              </p>
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${
+                theme === 'dark' ? 'text-slate-200' : 'text-gray-700'
+              }`}>
+                Type the phrase below to confirm
+              </label>
+              <div className={`mb-2 rounded-md border px-3 py-2 font-mono text-xs ${
+                theme === 'dark'
+                  ? 'bg-slate-800 border-slate-700 text-slate-200'
+                  : 'bg-gray-50 border-gray-200 text-gray-700'
+              }`}>
+                {deletePrompt}
+              </div>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type the confirmation phrase"
+                className={inputClass}
+                disabled={isDeleting}
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="danger"
+                onClick={handleDeleteConfirm}
+                isLoading={isDeleting}
+                disabled={!isDeleteConfirmValid || isDeleting}
+              >
+                Confirm Delete
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteKeyId(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

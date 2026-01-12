@@ -6,7 +6,7 @@ import { Toggle } from '../Common/Toggle';
 
 export interface ApiKeyCardProps {
   apiKey: ApiKey;
-  onDelete: (id: string) => void;
+  onRequestDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
   theme: 'light' | 'dark';
   solutionCount?: number;
@@ -14,13 +14,12 @@ export interface ApiKeyCardProps {
 
 export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
   apiKey,
-  onDelete,
+  onRequestDelete,
   onTogglePublic,
   theme,
   solutionCount = 0,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(apiKey.id);
@@ -29,12 +28,7 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
   };
 
   const handleDelete = () => {
-    if (showConfirmDelete) {
-      onDelete(apiKey.id);
-    } else {
-      setShowConfirmDelete(true);
-      setTimeout(() => setShowConfirmDelete(false), 3000);
-    }
+    onRequestDelete(apiKey.id);
   };
 
   const handleTogglePublic = () => {
@@ -92,12 +86,12 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
           <span className="ml-1">{copied ? 'Copied ID!' : 'Copy ID'}</span>
         </Button>
         <Button
-          variant={showConfirmDelete ? 'danger' : 'ghost'}
+          variant="ghost"
           size="sm"
           onClick={handleDelete}
         >
           <Trash2 size={14} />
-          <span className="ml-1">{showConfirmDelete ? 'Confirm?' : 'Delete'}</span>
+          <span className="ml-1">Delete</span>
         </Button>
       </div>
 
