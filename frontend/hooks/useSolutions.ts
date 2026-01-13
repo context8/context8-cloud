@@ -73,6 +73,10 @@ export function useSolutions(auth: AuthOptions) {
     }
   }, [auth, fetchSolutions]);
 
+  const getSolution = useCallback(async (id: string) => {
+    return solutionsService.get(auth, id);
+  }, [auth]);
+
   useEffect(() => {
     fetchSolutions();
   }, [fetchSolutions]);
@@ -84,6 +88,7 @@ export function useSolutions(auth: AuthOptions) {
     createSolution,
     deleteSolution,
     togglePublic,
+    getSolution,
     refetch: fetchSolutions,
   };
 }

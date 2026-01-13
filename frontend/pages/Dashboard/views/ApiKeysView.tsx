@@ -269,6 +269,11 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
               </p>
             </div>
             <div>
+              <p className={`text-xs mb-2 ${
+                theme === 'dark' ? 'text-slate-400' : 'text-gray-500'
+              }`}>
+                API key name to confirm: <span className="font-mono select-all">{deleteTarget.name}</span>
+              </p>
               <label className={`block text-sm font-medium mb-1 ${
                 theme === 'dark' ? 'text-slate-200' : 'text-gray-700'
               }`}>

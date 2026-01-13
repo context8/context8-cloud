@@ -36,8 +36,9 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     return { token, apiKey };
   }, [token, apiKey, extraKeyList]);
 
-  const { solutions, isLoading, createSolution, deleteSolution, togglePublic } = useSolutions(authOptions);
+  const { solutions, isLoading, createSolution, deleteSolution, togglePublic, getSolution } = useSolutions(authOptions);
   const { toasts, success, error, dismiss } = useToast();
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const filteredSolutions = useMemo(() => {
     let filtered = solutions;
@@ -77,6 +78,19 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
       success(`Solution is now ${isPublic ? 'public' : 'private'}`);
     } catch (err) {
       error(err instanceof Error ? err.message : 'Failed to update solution');
+    }
+  };
+
+  const handleView = async (solution: Solution) => {
+    setSelectedSolution(solution);
+    setIsDetailLoading(true);
+    try {
+      const detail = await getSolution(solution.id);
+      setSelectedSolution(detail);
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'Failed to load solution details');
+    } finally {
+      setIsDetailLoading(false);
     }
   };
 
@@ -186,7 +200,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
             <SolutionCard
               key={solution.id}
               solution={solution}
-              onView={setSelectedSolution}
+              onView={handleView}
               onDelete={handleDelete}
               onTogglePublic={handleTogglePublic}
               theme={theme}
@@ -218,12 +232,17 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
       >
         {selectedSolution && (
           <div className="space-y-4">
+            {isDetailLoading && (
+              <p className={theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}>
+                Loading solution details...
+              </p>
+            )}
             <div>
               <h4 className={`font-semibold mb-1 ${theme === 'dark' ? 'text-slate-200' : 'text-gray-900'}`}>
                 Error Message
               </h4>
               <p className={theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}>
-                {selectedSolution.errorMessage}
+                {selectedSolution.errorMessage || (isDetailLoading ? 'Loading...' : 'No data')}
               </p>
             </div>
             <div>
@@ -231,7 +250,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
                 Context
               </h4>
               <p className={theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}>
-                {selectedSolution.context}
+                {selectedSolution.context || (isDetailLoading ? 'Loading...' : 'No data')}
               </p>
             </div>
             <div>
@@ -239,7 +258,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
                 Root Cause
               </h4>
               <p className={theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}>
-                {selectedSolution.rootCause}
+                {selectedSolution.rootCause || (isDetailLoading ? 'Loading...' : 'No data')}
               </p>
             </div>
             <div>
@@ -247,7 +266,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
                 Solution
               </h4>
               <p className={theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}>
-                {selectedSolution.solution}
+                {selectedSolution.solution || (isDetailLoading ? 'Loading...' : 'No data')}
               </p>
             </div>
             {selectedSolution.tags && selectedSolution.tags.length > 0 && (
