@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   ChevronDown, 
   Plus, 
-  Terminal, 
   Bug, 
   X as XIcon, // Renamed to avoid confusion if needed, but lucide exports X for close icon usually. Using basic svg for Twitter X.
   ExternalLink,
@@ -43,8 +42,8 @@ export const Layout: React.FC<LayoutProps> = ({
               className={`flex items-center gap-2 rounded-md px-2 py-1 cursor-pointer transition-colors shadow-sm ${isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500' : 'bg-white border border-emerald-100 hover:border-emerald-300'}`}
               onClick={() => onViewChange('home')}
             >
-              <div className={`rounded-sm p-0.5 ${isDark ? 'bg-emerald-500' : 'bg-black'}`}>
-                <Terminal size={14} className="text-white" />
+              <div className={`rounded-sm p-0.5 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+                <img src="/logo.png" alt="Context8 logo" className="h-4 w-4" />
               </div>
               <span className={`font-semibold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Context8</span>
             </div>
