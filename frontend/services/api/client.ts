@@ -6,6 +6,12 @@ export interface AuthOptions {
   apiKeys?: string[];
 }
 
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
 function buildHeaders(auth?: AuthOptions): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -38,6 +44,9 @@ export async function request<T>(
   });
 
   if (!response.ok) {
+    if ((response.status === 401 || response.status === 403) && auth?.token && unauthorizedHandler) {
+      unauthorizedHandler();
+    }
     const errorText = await response.text();
     throw new Error(errorText || `Request failed with status ${response.status}`);
   }

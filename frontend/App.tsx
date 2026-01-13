@@ -5,6 +5,7 @@ import { DashboardContainer } from './pages/Dashboard/DashboardContainer';
 import { Login } from './pages/Login';
 import { DemoChat } from './pages/DemoChat';
 import { ThemeMode, View } from './types';
+import { setUnauthorizedHandler } from './services/api/client';
 
 type Session = {
   token: string;
@@ -38,6 +39,18 @@ const App: React.FC = () => {
     if (storedTheme === 'light' || storedTheme === 'dark') {
       setTheme(storedTheme);
     }
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      localStorage.removeItem(STORAGE_KEYS.token);
+      localStorage.removeItem(STORAGE_KEYS.email);
+      localStorage.removeItem(STORAGE_KEYS.apiKey);
+      setSession(null);
+      setApiKey(null);
+      setCurrentView('login');
+    });
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   const handleLogout = () => {
