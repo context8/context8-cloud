@@ -153,6 +153,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
               apiKey={apiKey}
               onRequestDelete={handleDeleteRequest}
               onTogglePublic={handleTogglePublic}
+              onCopy={() => success('API Key ID copied to clipboard')}
               theme={theme}
               solutionCount={solutionCounts[apiKey.id]}
             />
@@ -234,6 +235,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
               onClick={() => {
                 if (createdKeyValue) {
                   navigator.clipboard.writeText(createdKeyValue);
+                  success('API Key copied to clipboard');
                 }
               }}
             >

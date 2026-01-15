@@ -8,6 +8,7 @@ export interface ApiKeyCardProps {
   apiKey: ApiKey;
   onRequestDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
+  onCopy?: () => void;
   theme: 'light' | 'dark';
   solutionCount?: number;
 }
@@ -16,6 +17,7 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
   apiKey,
   onRequestDelete,
   onTogglePublic,
+  onCopy,
   theme,
   solutionCount = 0,
 }) => {
@@ -25,6 +27,7 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
     navigator.clipboard.writeText(apiKey.id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    onCopy?.();
   };
 
   const handleDelete = () => {
