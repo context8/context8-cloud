@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
+import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
 import { SearchResult, ThemeMode } from '../types';
 import { AlertTriangle, Database, Terminal } from 'lucide-react';
 
@@ -257,10 +258,20 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
                   </div>
                 )}
 
-                <div className={`mt-3 text-sm md:text-base leading-relaxed whitespace-pre-wrap ${
-                  isDark ? 'text-slate-200' : 'text-slate-800'
-                }`}>
-                  {msg.content || (status === 'loading' && msg.role === 'assistant' ? <span className="animate-pulse">...</span> : msg.content)}
+                <div className="mt-3 text-sm md:text-base leading-relaxed">
+                  {msg.content ? (
+                    msg.role === 'assistant' ? (
+                      <MarkdownRenderer content={msg.content} theme={theme} />
+                    ) : (
+                      <span className={`whitespace-pre-wrap ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        {msg.content}
+                      </span>
+                    )
+                  ) : (
+                    status === 'loading' && msg.role === 'assistant' ? (
+                      <span className="animate-pulse">...</span>
+                    ) : null
+                  )}
                 </div>
               </div>
               {msg.role === 'user' && (
