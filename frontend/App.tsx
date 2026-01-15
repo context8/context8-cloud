@@ -99,7 +99,7 @@ const App: React.FC = () => {
       {currentView === 'dashboard' && (
         <DashboardContainer sessionState={sessionValue} theme={theme} />
       )}
-      {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} />}
+      {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} onViewChange={setCurrentView} onToggleTheme={handleToggleTheme} />}
     </Layout>
   );
 };

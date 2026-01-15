@@ -3,8 +3,8 @@ import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
 import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
-import { SearchResult, ThemeMode } from '../types';
-import { AlertTriangle, Database, Terminal } from 'lucide-react';
+import { SearchResult, ThemeMode, View } from '../types';
+import { AlertTriangle, Database, Terminal, ChevronDown } from 'lucide-react';
 
 type SessionState = {
   session: { token: string; email: string } | null;
@@ -14,6 +14,8 @@ type SessionState = {
 type Props = {
   sessionState: SessionState;
   theme: ThemeMode;
+  onViewChange: (view: View) => void;
+  onToggleTheme: () => void;
 };
 
 type ChatMessage = {
@@ -37,7 +39,7 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
+export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, onToggleTheme }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -171,22 +173,56 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
 
   return (
     <div className={`h-screen w-full flex flex-col ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
-      <header className={`flex-shrink-0 flex items-center justify-between px-6 py-6 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white font-semibold text-lg shadow-lg ${isDark ? 'bg-gradient-to-br from-slate-600 to-slate-800 shadow-slate-900/40' : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-200'}`}>
-            C
+      <header className={`flex-shrink-0 h-14 flex items-center justify-between px-4 sm:px-6 border-b backdrop-blur-md ${isDark ? 'bg-[#0a0a0a]/80 border-slate-800' : 'bg-white/80 border-emerald-100'}`}>
+        <div className="flex items-center gap-4">
+          <div
+            className={`flex items-center gap-2 rounded-md px-2 py-1 cursor-pointer transition-colors shadow-sm ${isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500' : 'bg-white border border-emerald-100 hover:border-emerald-300'}`}
+            onClick={() => onViewChange('home')}
+          >
+            <div className={`rounded-sm p-0.5 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+              <img src="/logo.png" alt="Context8 logo" className="h-4 w-4" />
+            </div>
+            <span className={`font-semibold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Context8</span>
           </div>
-          <div>
-            <h1 className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Context8 Demo Assistant</h1>
-            <p className={`text-[10px] font-mono tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>LLM PROXY • SEARCH • TOOLS</p>
+
+          <div className={`hidden md:flex items-center gap-2 rounded-md px-3 py-1.5 text-sm border border-transparent ${isDark ? 'bg-slate-900/60' : 'bg-emerald-50/60'}`}>
+            <span className={isDark ? 'text-slate-300' : 'text-emerald-700'}>Personal</span>
+            <ChevronDown size={14} className={isDark ? 'text-slate-500' : 'text-emerald-300'} />
+            <button
+              className={`ml-2 transition-colors ${isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600'}`}
+              onClick={() => onViewChange('dashboard')}
+            >
+              Dashboard
+            </button>
+            <span className={`ml-2 ${isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium'}`}>
+              Demo
+            </span>
           </div>
         </div>
-        <button
-          onClick={resetChat}
-          className={`px-3 py-1 text-xs rounded-full transition-colors border ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'}`}
-        >
-          New Chat
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onToggleTheme}
+            className={`p-2 rounded-full transition-colors border ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'}`}
+            title="Toggle Theme"
+          >
+            {isDark ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M12 21v-1m0-5a3 3 0 110-6 3 3 0 010 6z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={resetChat}
+            className={`px-3 py-1.5 text-xs rounded-md transition-colors border font-medium ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'}`}
+          >
+            New Chat
+          </button>
+        </div>
       </header>
 
       <div className={`flex-shrink-0 border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>
@@ -317,6 +353,28 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme }) => {
           </div>
         )}
       </div>
+
+      <footer className={`flex-shrink-0 border-t px-4 sm:px-6 py-3 ${isDark ? 'border-slate-800 bg-[#0a0a0a]' : 'border-emerald-100 bg-white'}`}>
+        <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+          <span>© 2025, Context8 local knowledge</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => onViewChange('home')}
+              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => onViewChange('dashboard')}
+              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+            >
+              Dashboard
+            </button>
+            <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>About</a>
+            <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Contact</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
