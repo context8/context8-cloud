@@ -10,6 +10,7 @@ export function useSolutions(auth: AuthOptions) {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSolutions = useCallback(async () => {
     if (!auth.token && !auth.apiKey && (!auth.apiKeys || auth.apiKeys.length === 0)) {
@@ -46,12 +47,21 @@ export function useSolutions(auth: AuthOptions) {
     }
   }, [auth, fetchSolutions]);
 
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    refreshTimeoutRef.current = setTimeout(() => {
+      fetchSolutions();
+    }, 800);
+  }, [fetchSolutions]);
+
   const deleteSolution = useCallback(async (id: string) => {
     setIsLoading(true);
     setError(null);
     try {
       await solutionsService.delete(auth, id);
-      await fetchSolutions();
+      scheduleRefresh();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to delete solution';
       setError(errorMsg);
@@ -120,6 +130,9 @@ export function useSolutions(auth: AuthOptions) {
     return () => {
       if (searchAbortRef.current) {
         searchAbortRef.current.abort();
+      }
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
       }
     };
   }, []);
