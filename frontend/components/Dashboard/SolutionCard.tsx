@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { Eye, Trash2, Calendar, Key, Lock, Unlock } from 'lucide-react';
-import { Solution } from '../../types';
+import { Eye, Trash2, Lock, Unlock } from 'lucide-react';
+import { Solution, ThemeMode } from '../../types';
 import { Button } from '../Common/Button';
 import { Toggle } from '../Common/Toggle';
+import { ErrorTypeBadge } from '../Common/ErrorTypeBadge';
+import { TagCloud } from '../Common/TagCloud';
+import { SolutionPreview } from './SolutionPreview';
+import { SolutionStats } from './SolutionStats';
 
 export interface SolutionCardProps {
   solution: Solution;
   onView: (solution: Solution) => void;
   onDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
-  theme: 'light' | 'dark';
+  theme: ThemeMode;
+  showPreview?: boolean;
 }
 
 export const SolutionCard: React.FC<SolutionCardProps> = ({
@@ -18,8 +23,11 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   onDelete,
   onTogglePublic,
   theme,
+  showPreview = true,
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const isDark = theme === 'dark';
+  const errorPreview = solution.errorMessage || solution.preview;
 
   const handleDelete = () => {
     if (showConfirmDelete) {
@@ -44,54 +52,64 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   return (
     <div
       className={`
-        p-4 rounded-lg border transition-shadow duration-300
-        ${theme === 'dark'
-          ? 'bg-slate-900 border-slate-700 hover:shadow-xl'
-          : 'bg-white border-gray-200 hover:shadow-xl'
+        p-4 rounded-xl border transition-all duration-200
+        ${isDark
+          ? 'bg-slate-900/80 border-slate-800 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5'
+          : 'bg-white border-slate-100 hover:border-emerald-200 hover:shadow-md'
         }
+        hover:-translate-y-0.5
       `}
     >
-      <div className="flex items-start justify-between mb-2">
-        <h3 className={`font-semibold text-sm ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>
-          {truncateText(solution.title || 'Untitled', 60)}
-        </h3>
+      {/* Header: Error Type & Visibility */}
+      <div className="flex items-center justify-between mb-3">
+        <ErrorTypeBadge type={solution.errorType} size="sm" theme={theme} />
         {solution.isPublic !== undefined && (
-          <div className="flex-shrink-0 ml-2">
+          <div className="flex items-center gap-1">
             {solution.isPublic ? (
-              <Unlock size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
+              <Unlock size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
             ) : (
-              <Lock size={14} className={theme === 'dark' ? 'text-slate-400' : 'text-gray-500'} />
+              <Lock size={14} className={isDark ? 'text-slate-500' : 'text-slate-400'} />
             )}
           </div>
         )}
       </div>
 
-      <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>
-        {truncateText(solution.errorMessage || 'No description', 100)}
-      </p>
+      {/* Title */}
+      <h3
+        className={`
+          font-semibold text-base mb-1 cursor-pointer transition-colors
+          ${isDark ? 'text-slate-100 hover:text-emerald-400' : 'text-slate-900 hover:text-emerald-600'}
+        `}
+        onClick={() => onView(solution)}
+      >
+        {truncateText(solution.title || 'Untitled Solution', 60)}
+      </h3>
 
-      {solution.tags && solution.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {solution.tags.slice(0, 3).map((tag, idx) => (
-            <span
-              key={idx}
-              className={`px-2 py-1 text-xs rounded ${
-                theme === 'dark'
-                  ? 'bg-slate-800 text-slate-300'
-                  : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-          {solution.tags.length > 3 && (
-            <span className={`px-2 py-1 text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
-              +{solution.tags.length - 3}
-            </span>
-          )}
+      {/* Error Message Preview */}
+      {errorPreview && (
+        <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          {truncateText(errorPreview, 120)}
+        </p>
+      )}
+
+      {/* Solution Preview */}
+      {showPreview && solution.solution && (
+        <div className="mb-3">
+          <SolutionPreview
+            content={solution.solution}
+            maxLines={3}
+            expandable={false}
+            theme={theme}
+          />
         </div>
       )}
 
+      {/* Tags */}
+      <div className="mb-3">
+        <TagCloud tags={solution.tags} maxVisible={3} size="sm" theme={theme} />
+      </div>
+
+      {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <Button
           variant="secondary"
@@ -111,32 +129,29 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         </Button>
       </div>
 
-      <div className={`text-xs pt-3 border-t ${
-        theme === 'dark' ? 'border-slate-700 text-slate-400' : 'border-gray-200 text-gray-500'
-      }`}>
-        <div className="flex items-center gap-4 mb-2">
-          <div className="flex items-center gap-1">
-            <Calendar size={12} />
-            <span>{solution.createdAt ? new Date(solution.createdAt).toLocaleDateString() : 'Unknown'}</span>
-          </div>
-          {solution.apiKeyName && (
-            <div className="flex items-center gap-1">
-              <Key size={12} />
-              <span className="truncate">{solution.apiKeyName}</span>
-            </div>
-          )}
+      {/* Stats */}
+      <SolutionStats
+        createdAt={solution.createdAt}
+        views={solution.views}
+        upvotes={solution.upvotes}
+        apiKeyName={solution.apiKeyName}
+        theme={theme}
+      />
+
+      {/* Public/Private Toggle */}
+      {onTogglePublic && solution.isPublic !== undefined && (
+        <div className={`
+          flex items-center justify-between pt-3 mt-3 border-t text-xs
+          ${isDark ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'}
+        `}>
+          <span>{solution.isPublic ? 'Public' : 'Private'}</span>
+          <Toggle
+            checked={solution.isPublic}
+            onChange={handleTogglePublic}
+            size="sm"
+          />
         </div>
-        {onTogglePublic && solution.isPublic !== undefined && (
-          <div className="flex items-center justify-between">
-            <span>{solution.isPublic ? 'Public' : 'Private'}</span>
-            <Toggle
-              checked={solution.isPublic}
-              onChange={handleTogglePublic}
-              size="sm"
-            />
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

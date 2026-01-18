@@ -25,6 +25,7 @@ export interface Solution {
   tags?: string[];
   createdAt?: string;
   errorMessage?: string;
+  preview?: string;
   context?: string;
   rootCause?: string;
   solution?: string;
@@ -43,10 +44,14 @@ export interface SearchResponse {
 }
 
 export interface SearchResult {
-  id: string;                  // Required
-  title?: string;              // Optional; fallback to "Untitled"
-  errorType?: string;          // Optional; fallback to "Unknown"
-  tags?: string[];             // Optional; fallback to "No tags"
-  createdAt?: string;          // Optional; fallback to "Unknown date"
-  preview?: string;            // Optional; fallback to "No description"
+  id: string;
+  title?: string;
+  errorType?: string;
+  tags?: string[];
+  createdAt?: string;
+  preview?: string;
+  errorMessage?: string;
+  solution?: string;
+  isPublic?: boolean;
+  apiKeyId?: string;
 }

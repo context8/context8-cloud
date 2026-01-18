@@ -62,7 +62,7 @@ export const solutionsService = {
     return normalizeSolution(response);
   },
 
-  async search(query: string, auth?: AuthOptions): Promise<SearchResponse> {
+  async search(query: string, auth?: AuthOptions, signal?: AbortSignal): Promise<SearchResponse> {
     const payload = {
       query,
       limit: 10,
@@ -71,13 +71,13 @@ export const solutionsService = {
     if (auth) {
       return request<SearchResponse>(
         '/search',
-        { method: 'POST', body: JSON.stringify(payload) },
+        { method: 'POST', body: JSON.stringify(payload), signal },
         auth
       );
     }
     return publicRequest<SearchResponse>(
       '/search',
-      { method: 'POST', body: JSON.stringify(payload) }
+      { method: 'POST', body: JSON.stringify(payload), signal }
     );
   },
 

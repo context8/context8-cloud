@@ -1,12 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { solutionsService, SolutionCreate } from '../services/api/solutions';
-import { Solution } from '../types';
+import { Solution, SearchResult } from '../types';
 import { AuthOptions } from '../services/api/client';
 
 export function useSolutions(auth: AuthOptions) {
   const [solutions, setSolutions] = useState<Solution[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   const fetchSolutions = useCallback(async () => {
     if (!auth.token && !auth.apiKey && (!auth.apiKeys || auth.apiKeys.length === 0)) {
@@ -77,18 +80,62 @@ export function useSolutions(auth: AuthOptions) {
     return solutionsService.get(auth, id);
   }, [auth]);
 
+  const searchSolutions = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
+    if (searchAbortRef.current) {
+      searchAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+
+    setIsSearching(true);
+    setError(null);
+    try {
+      const response = await solutionsService.search(query, auth, controller.signal);
+      setSearchResults(response.results || []);
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      setError(err instanceof Error ? err.message : 'Search failed');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [auth]);
+
+  const clearSearch = useCallback(() => {
+    setSearchResults(null);
+  }, []);
+
   useEffect(() => {
     fetchSolutions();
   }, [fetchSolutions]);
 
+  useEffect(() => {
+    return () => {
+      if (searchAbortRef.current) {
+        searchAbortRef.current.abort();
+      }
+    };
+  }, []);
+
   return {
     solutions,
+    searchResults,
     isLoading,
+    isSearching,
     error,
     createSolution,
     deleteSolution,
     togglePublic,
     getSolution,
+    searchSolutions,
+    clearSearch,
     refetch: fetchSolutions,
   };
 }
