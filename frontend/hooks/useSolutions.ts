@@ -10,6 +10,8 @@ export function useSolutions(auth: AuthOptions) {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
+  const solutionsRef = useRef<Solution[]>([]);
+  const searchResultsRef = useRef<SearchResult[] | null>(null);
 
   const fetchSolutions = useCallback(async () => {
     if (!auth.token && !auth.apiKey && (!auth.apiKeys || auth.apiKeys.length === 0)) {
@@ -49,10 +51,16 @@ export function useSolutions(auth: AuthOptions) {
   const deleteSolution = useCallback(async (id: string) => {
     setIsLoading(true);
     setError(null);
+    const previousSolutions = solutionsRef.current;
+    const previousSearchResults = searchResultsRef.current;
+    setSolutions((prev) => prev.filter((item) => item.id !== id));
+    setSearchResults((prev) => (prev ? prev.filter((item) => item.id !== id) : prev));
     try {
       await solutionsService.delete(auth, id);
-      await fetchSolutions();
+      fetchSolutions();
     } catch (err) {
+      setSolutions(previousSolutions);
+      setSearchResults(previousSearchResults);
       const errorMsg = err instanceof Error ? err.message : 'Failed to delete solution';
       setError(errorMsg);
       throw new Error(errorMsg);
@@ -115,6 +123,14 @@ export function useSolutions(auth: AuthOptions) {
   useEffect(() => {
     fetchSolutions();
   }, [fetchSolutions]);
+
+  useEffect(() => {
+    solutionsRef.current = solutions;
+  }, [solutions]);
+
+  useEffect(() => {
+    searchResultsRef.current = searchResults;
+  }, [searchResults]);
 
   useEffect(() => {
     return () => {
