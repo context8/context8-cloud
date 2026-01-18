@@ -61,6 +61,8 @@ export function useSolutions(auth: AuthOptions) {
     setError(null);
     try {
       await solutionsService.delete(auth, id);
+      setSolutions((prev) => prev.filter((item) => item.id !== id));
+      setSearchResults((prev) => (prev ? prev.filter((item) => item.id !== id) : prev));
       scheduleRefresh();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to delete solution';
