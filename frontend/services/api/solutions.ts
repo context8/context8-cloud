@@ -1,5 +1,5 @@
 import { request, AuthOptions, publicRequest } from './client';
-import { Solution, SolutionInput, SearchResult, SearchResponse } from '../../types';
+import type { Solution, SolutionInput, SearchResponse } from '@/types';
 
 export interface SolutionCreate extends SolutionInput {
   isPublic?: boolean;
@@ -20,6 +20,11 @@ export const solutionsService = {
 
   async get(auth: AuthOptions, id: string): Promise<Solution> {
     const data = await request<Solution>(`/solutions/${id}`, { method: 'GET' }, auth);
+    return normalizeSolution(data);
+  },
+
+  async getPublic(id: string): Promise<Solution> {
+    const data = await publicRequest<Solution>(`/solutions/${id}`, { method: 'GET' });
     return normalizeSolution(data);
   },
 

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Key, FileText, Search } from 'lucide-react';
-import { ApiKeysView } from './views/ApiKeysView';
-import { SolutionsView } from './views/SolutionsView';
-import { SearchView } from './views/SearchView';
-import { ThemeMode } from '../../types';
+import { ApiKeysView } from '@/pages/Dashboard/views/ApiKeysView';
+import { SolutionsView } from '@/pages/Dashboard/views/SolutionsView';
+import { SearchView } from '@/pages/Dashboard/views/SearchView';
+import type { ThemeMode } from '@/types';
 
 export type DashboardView = 'apikeys' | 'solutions' | 'search';
 
@@ -27,6 +27,15 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
   const { session, apiKey } = sessionState;
 
   const token = session?.token || null;
+  const solutionIdFromUrl = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('solutionId')
+    : null;
+
+  useEffect(() => {
+    if (solutionIdFromUrl) {
+      setCurrentView('solutions');
+    }
+  }, [solutionIdFromUrl]);
 
   const tabs: Array<{ id: DashboardView; label: string; icon: React.ReactNode }> = [
     { id: 'apikeys', label: 'API Keys', icon: <Key size={18} /> },

@@ -3,8 +3,12 @@ import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
 import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
+import { ErrorTypeBadge } from '../components/Common/ErrorTypeBadge';
+import { TagCloud } from '../components/Common/TagCloud';
+import { Modal } from '../components/Common/Modal';
 import { SearchResult, ThemeMode, View } from '../types';
 import { AlertTriangle, Database, Terminal, ChevronDown } from 'lucide-react';
+import { solutionsService } from '../services/api/solutions';
 
 type SessionState = {
   session: { token: string; email: string } | null;
@@ -51,6 +55,8 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
   const [deepSearchEnabled, setDeepSearchEnabled] = useState(true);
   const [deepThinkingEnabled, setDeepThinkingEnabled] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [selectedSolution, setSelectedSolution] = useState<SearchResult | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const auth = useMemo(() => ({
     token: sessionState.session?.token,
@@ -87,6 +93,28 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
 
   const updateMessage = (id: string, update: Partial<ChatMessage>) => {
     setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, ...update } : msg)));
+  };
+
+  const buildHitPreview = (hit: SearchResult) => {
+    if (hit.errorMessage) return hit.errorMessage;
+    if (hit.preview) return hit.preview;
+    return 'No preview available';
+  };
+
+  const handleOpenSolution = async (solutionId: string) => {
+    setIsDetailLoading(true);
+    setSelectedSolution({ id: solutionId } as SearchResult);
+    try {
+      const hasAuth = Boolean(auth.apiKey || auth.token);
+      const detail = hasAuth
+        ? await solutionsService.get(auth, solutionId)
+        : await solutionsService.getPublic(solutionId);
+      setSelectedSolution(detail);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load solution details');
+    } finally {
+      setIsDetailLoading(false);
+    }
   };
 
   const handleSend = async (prompt: string) => {
@@ -258,57 +286,112 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
                   </div>
                 </div>
               )}
-              <div
-                className={`max-w-[85%] rounded-2xl border px-4 py-3 shadow-sm transition-all ${
-                  msg.role === 'user'
-                    ? isDark
-                      ? 'bg-slate-900 border-slate-800 text-slate-100'
-                      : 'bg-white border-slate-200 text-slate-900'
-                    : isDark
-                      ? 'bg-slate-900/60 border-slate-800 text-slate-100'
-                      : 'bg-slate-50 border-slate-200 text-slate-900'
-                }`}
-              >
-                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
-                  <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                  {msg.flags?.deepSearch && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-600'}`}>
-                      Deep Search
-                    </span>
+              <div className="flex flex-col gap-3 max-w-[85%] w-full">
+                <div
+                  className={`rounded-2xl border px-4 py-3 shadow-sm transition-all ${
+                    msg.role === 'user'
+                      ? isDark
+                        ? 'bg-slate-900 border-slate-800 text-slate-100'
+                        : 'bg-white border-slate-200 text-slate-900'
+                      : isDark
+                        ? 'bg-slate-900/60 border-slate-800 text-slate-100'
+                        : 'bg-slate-50 border-slate-200 text-slate-900'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
+                    <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
+                    {msg.flags?.deepSearch && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-600'}`}>
+                        Deep Search
+                      </span>
+                    )}
+                    {msg.flags?.deepThinking && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-indigo-500/10 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                        Deep Thinking
+                      </span>
+                    )}
+                  </div>
+
+                  {msg.role === 'assistant' && msg.thought && (
+                    <div className="mt-3">
+                      <GeminiReasoningBlock
+                        title="Retrieval steps"
+                        detail={msg.thought}
+                        duration={msg.thoughtDuration}
+                        theme={theme}
+                      />
+                    </div>
                   )}
-                  {msg.flags?.deepThinking && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-indigo-500/10 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
-                      Deep Thinking
-                    </span>
-                  )}
+
+                  <div className="mt-3 text-sm md:text-base leading-relaxed">
+                    {msg.content ? (
+                      msg.role === 'assistant' ? (
+                        <MarkdownRenderer content={msg.content} theme={theme} />
+                      ) : (
+                        <span className={`whitespace-pre-wrap ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                          {msg.content}
+                        </span>
+                      )
+                    ) : (
+                      status === 'loading' && msg.role === 'assistant' ? (
+                        <span className="animate-pulse">...</span>
+                      ) : null
+                    )}
+                  </div>
                 </div>
 
-                {msg.role === 'assistant' && msg.thought && (
-                  <div className="mt-3">
-                    <GeminiReasoningBlock
-                      title="Retrieval steps"
-                      detail={msg.thought}
-                      duration={msg.thoughtDuration}
-                      theme={theme}
-                    />
+                {msg.role === 'assistant' && msg.hits && msg.hits.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
+                      <span>Matches</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-600'}`}>
+                        {msg.hits.length} found
+                      </span>
+                    </div>
+                    <div className="grid gap-2">
+                      {msg.hits.slice(0, 5).map((hit) => (
+                        <div
+                          key={hit.id}
+                          className={`rounded-xl border p-3 transition-colors ${
+                            isDark
+                              ? 'bg-slate-950 border-slate-800 hover:border-emerald-500/40'
+                              : 'bg-white border-slate-200 hover:border-emerald-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <ErrorTypeBadge type={hit.errorType} size="sm" theme={theme} />
+                                <span className={`text-sm font-semibold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                                  {hit.title || 'Untitled Solution'}
+                                </span>
+                              </div>
+                              <p className={`mt-2 text-xs line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {buildHitPreview(hit)}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenSolution(hit.id)}
+                              className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-medium border transition-colors ${
+                                isDark
+                                  ? 'border-slate-700 text-slate-200 hover:border-emerald-400 hover:text-emerald-300'
+                                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:text-emerald-600'
+                              }`}
+                            >
+                              Open
+                            </button>
+                          </div>
+                          {hit.tags && hit.tags.length > 0 && (
+                            <div className="mt-2">
+                              <TagCloud tags={hit.tags} maxVisible={4} size="sm" theme={theme} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-
-                <div className="mt-3 text-sm md:text-base leading-relaxed">
-                  {msg.content ? (
-                    msg.role === 'assistant' ? (
-                      <MarkdownRenderer content={msg.content} theme={theme} />
-                    ) : (
-                      <span className={`whitespace-pre-wrap ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                        {msg.content}
-                      </span>
-                    )
-                  ) : (
-                    status === 'loading' && msg.role === 'assistant' ? (
-                      <span className="animate-pulse">...</span>
-                    ) : null
-                  )}
-                </div>
               </div>
               {msg.role === 'user' && (
                 <div className="flex flex-col items-center">
@@ -353,6 +436,73 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={!!selectedSolution}
+        onClose={() => setSelectedSolution(null)}
+        title={selectedSolution?.title || 'Solution Details'}
+        size="xl"
+      >
+        {selectedSolution && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <ErrorTypeBadge type={selectedSolution.errorType} size="md" theme={theme} />
+              {selectedSolution.tags && selectedSolution.tags.length > 0 && (
+                <TagCloud tags={selectedSolution.tags} maxVisible={5} size="sm" theme={theme} />
+              )}
+            </div>
+
+            {isDetailLoading && (
+              <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Loading full details...
+              </div>
+            )}
+
+            <div>
+              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Error Message
+              </h4>
+              <div className={`p-3 rounded-lg font-mono text-sm ${isDark ? 'bg-slate-800 text-red-300' : 'bg-red-50 text-red-700'}`}>
+                {selectedSolution.errorMessage || 'No error message'}
+              </div>
+            </div>
+
+            {selectedSolution.context && (
+              <div>
+                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Context
+                </h4>
+                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                  {selectedSolution.context}
+                </p>
+              </div>
+            )}
+
+            {selectedSolution.rootCause && (
+              <div>
+                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Root Cause
+                </h4>
+                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                  {selectedSolution.rootCause}
+                </p>
+              </div>
+            )}
+
+            <div>
+              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                Solution
+              </h4>
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-emerald-50/50'}`}>
+                <MarkdownRenderer
+                  content={selectedSolution.solution || 'No solution provided'}
+                  theme={theme}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <footer className={`flex-shrink-0 border-t px-4 sm:px-6 py-3 ${isDark ? 'border-slate-800 bg-[#0a0a0a]' : 'border-emerald-100 bg-white'}`}>
         <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>

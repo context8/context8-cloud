@@ -1,20 +1,20 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles } from 'lucide-react';
-import { SolutionCard } from '../../../components/Dashboard/SolutionCard';
-import { SolutionListItem } from '../../../components/Dashboard/SolutionListItem';
-import { SolutionCardSkeleton } from '../../../components/Dashboard/SolutionCardSkeleton';
-import { SolutionForm, SolutionFormData } from '../../../components/Dashboard/SolutionForm';
-import { Button } from '../../../components/Common/Button';
-import { Modal } from '../../../components/Common/Modal';
-import { SegmentedControl } from '../../../components/Common/SegmentedControl';
-import { Dropdown } from '../../../components/Common/Dropdown';
-import { ErrorTypeBadge, getErrorTypeOptions, normalizeErrorType } from '../../../components/Common/ErrorTypeBadge';
-import { TagCloud } from '../../../components/Common/TagCloud';
-import { MarkdownRenderer } from '../../../components/Common/MarkdownRenderer';
-import { useSolutions } from '../../../hooks/useSolutions';
-import { useToast } from '../../../hooks/useToast';
-import { ToastContainer } from '../../../components/Common/Toast';
-import { SearchResult, Solution, ThemeMode } from '../../../types';
+import { SolutionCard } from '@/components/Dashboard/SolutionCard';
+import { SolutionListItem } from '@/components/Dashboard/SolutionListItem';
+import { SolutionCardSkeleton } from '@/components/Dashboard/SolutionCardSkeleton';
+import { SolutionForm, SolutionFormData } from '@/components/Dashboard/SolutionForm';
+import { Button } from '@/components/Common/Button';
+import { Modal } from '@/components/Common/Modal';
+import { SegmentedControl } from '@/components/Common/SegmentedControl';
+import { Dropdown } from '@/components/Common/Dropdown';
+import { ErrorTypeBadge, getErrorTypeOptions, normalizeErrorType } from '@/components/Common/ErrorTypeBadge';
+import { TagCloud } from '@/components/Common/TagCloud';
+import { MarkdownRenderer } from '@/components/Common/MarkdownRenderer';
+import { useSolutions } from '@/hooks/useSolutions';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/Common/Toast';
+import type { SearchResult, Solution, ThemeMode } from '@/types';
 
 export interface SolutionsViewProps {
   token: string | null;
@@ -167,9 +167,30 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     }
   };
 
-  const handleView = async (solution: Solution) => {
+  const getSolutionIdFromUrl = useCallback(() => {
+    return new URLSearchParams(window.location.search).get('solutionId');
+  }, []);
+
+  const updateSolutionIdInUrl = useCallback((solutionId: string | null, replace = false) => {
+    const url = new URL(window.location.href);
+    if (solutionId) {
+      url.searchParams.set('solutionId', solutionId);
+    } else {
+      url.searchParams.delete('solutionId');
+    }
+    if (replace) {
+      window.history.replaceState({}, '', url.toString());
+    } else {
+      window.history.pushState({}, '', url.toString());
+    }
+  }, []);
+
+  const handleView = useCallback(async (solution: Solution, replace = false) => {
     setSelectedSolution(solution);
     setIsDetailLoading(true);
+    if (solution.id) {
+      updateSolutionIdInUrl(solution.id, replace);
+    }
     try {
       const detail = await getSolution(solution.id);
       setSelectedSolution(detail);
@@ -178,7 +199,12 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     } finally {
       setIsDetailLoading(false);
     }
-  };
+  }, [getSolution, updateSolutionIdInUrl, error]);
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedSolution(null);
+    updateSolutionIdInUrl(null, false);
+  }, [updateSolutionIdInUrl]);
 
   const handleClearFilters = useCallback(() => {
     setPublicFilter('all');
@@ -194,6 +220,26 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   ];
 
   const hasActiveFilters = publicFilter !== 'all' || errorTypeFilter || searchQuery;
+
+  useEffect(() => {
+    const solutionId = getSolutionIdFromUrl();
+    if (solutionId) {
+      handleView({ id: solutionId } as Solution, true);
+    }
+  }, [getSolutionIdFromUrl, handleView]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const solutionId = getSolutionIdFromUrl();
+      if (solutionId) {
+        handleView({ id: solutionId } as Solution, true);
+      } else {
+        setSelectedSolution(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [getSolutionIdFromUrl, handleView]);
 
   return (
     <div className="space-y-6">
@@ -420,7 +466,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
       {/* View Modal */}
       <Modal
         isOpen={!!selectedSolution}
-        onClose={() => setSelectedSolution(null)}
+        onClose={handleCloseDetail}
         title={selectedSolution?.title || 'Solution Details'}
         size="xl"
       >
