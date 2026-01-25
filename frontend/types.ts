@@ -36,6 +36,9 @@ export interface Solution {
   author?: string;
   views?: number;
   upvotes?: number;
+  downvotes?: number;
+  voteScore?: number;
+  myVote?: number | null;
 }
 
 export interface SearchResponse {
@@ -54,4 +57,7 @@ export interface SearchResult {
   solution?: string;
   isPublic?: boolean;
   apiKeyId?: string;
+  upvotes?: number;
+  downvotes?: number;
+  voteScore?: number;
 }

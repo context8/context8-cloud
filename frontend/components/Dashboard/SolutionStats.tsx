@@ -1,11 +1,12 @@
 import React from 'react';
-import { Calendar, Eye, ThumbsUp, Key } from 'lucide-react';
+import { Calendar, Eye, ThumbsUp, ThumbsDown, Key } from 'lucide-react';
 import { ThemeMode } from '../../types';
 
 interface SolutionStatsProps {
   createdAt?: string;
   views?: number;
   upvotes?: number;
+  downvotes?: number;
   apiKeyName?: string;
   compact?: boolean;
   theme: ThemeMode;
@@ -25,6 +26,7 @@ export const SolutionStats: React.FC<SolutionStatsProps> = ({
   createdAt,
   views,
   upvotes,
+  downvotes,
   apiKeyName,
   compact = false,
   theme,
@@ -35,6 +37,7 @@ export const SolutionStats: React.FC<SolutionStatsProps> = ({
     { icon: Calendar, value: formatDate(createdAt), show: true },
     { icon: Eye, value: views?.toString(), show: views !== undefined },
     { icon: ThumbsUp, value: upvotes?.toString(), show: upvotes !== undefined },
+    { icon: ThumbsDown, value: downvotes?.toString(), show: downvotes !== undefined },
     { icon: Key, value: apiKeyName, show: !!apiKeyName },
   ].filter(item => item.show);
 

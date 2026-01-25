@@ -134,6 +134,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         createdAt={solution.createdAt}
         views={solution.views}
         upvotes={solution.upvotes}
+        downvotes={solution.downvotes}
         apiKeyName={solution.apiKeyName}
         theme={theme}
       />
