@@ -5,6 +5,14 @@ export interface SolutionCreate extends SolutionInput {
   isPublic?: boolean;
 }
 
+export interface VoteResponse {
+  solutionId: string;
+  upvotes: number;
+  downvotes: number;
+  voteScore: number;
+  myVote?: number | null;
+}
+
 const normalizeSolution = (item: Solution & { is_public?: boolean; isPublic?: boolean }): Solution => ({
   ...item,
   isPublic: item.isPublic ?? item.is_public,
@@ -25,6 +33,16 @@ export const solutionsService = {
 
   async getPublic(id: string): Promise<Solution> {
     const data = await publicRequest<Solution>(`/solutions/${id}`, { method: 'GET' });
+    return normalizeSolution(data);
+  },
+
+  async getEs(auth: AuthOptions, id: string): Promise<Solution> {
+    const data = await request<Solution>(`/solutions/${id}/es`, { method: 'GET' }, auth);
+    return normalizeSolution(data);
+  },
+
+  async getPublicEs(id: string): Promise<Solution> {
+    const data = await publicRequest<Solution>(`/solutions/${id}/es`, { method: 'GET' });
     return normalizeSolution(data);
   },
 
@@ -90,6 +108,22 @@ export const solutionsService = {
     return request<{ total: number }>(
       '/solutions/count',
       { method: 'GET' },
+      auth
+    );
+  },
+
+  async vote(auth: AuthOptions, id: string, value: 1 | -1): Promise<VoteResponse> {
+    return request<VoteResponse>(
+      `/solutions/${id}/vote`,
+      { method: 'POST', body: JSON.stringify({ value }) },
+      auth
+    );
+  },
+
+  async clearVote(auth: AuthOptions, id: string): Promise<VoteResponse> {
+    return request<VoteResponse>(
+      `/solutions/${id}/vote`,
+      { method: 'DELETE' },
       auth
     );
   },

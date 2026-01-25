@@ -89,7 +89,7 @@ export function useSolutions(auth: AuthOptions) {
   }, [auth, fetchSolutions]);
 
   const getSolution = useCallback(async (id: string) => {
-    return solutionsService.get(auth, id);
+    return solutionsService.getEs(auth, id);
   }, [auth]);
 
   const searchSolutions = useCallback(async (query: string) => {
@@ -124,6 +124,60 @@ export function useSolutions(auth: AuthOptions) {
     setSearchResults(null);
   }, []);
 
+  const voteSolution = useCallback(async (id: string, value: 1 | -1) => {
+    const resp = await solutionsService.vote(auth, id, value);
+    setSolutions((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              upvotes: resp.upvotes,
+              downvotes: resp.downvotes,
+              voteScore: resp.voteScore,
+              myVote: resp.myVote ?? null,
+            }
+          : item
+      )
+    );
+    setSearchResults((prev) =>
+      prev
+        ? prev.map((item) =>
+            item.id === id
+              ? { ...item, upvotes: resp.upvotes, downvotes: resp.downvotes, voteScore: resp.voteScore }
+              : item
+          )
+        : prev
+    );
+    return resp;
+  }, [auth]);
+
+  const clearVote = useCallback(async (id: string) => {
+    const resp = await solutionsService.clearVote(auth, id);
+    setSolutions((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              upvotes: resp.upvotes,
+              downvotes: resp.downvotes,
+              voteScore: resp.voteScore,
+              myVote: null,
+            }
+          : item
+      )
+    );
+    setSearchResults((prev) =>
+      prev
+        ? prev.map((item) =>
+            item.id === id
+              ? { ...item, upvotes: resp.upvotes, downvotes: resp.downvotes, voteScore: resp.voteScore }
+              : item
+          )
+        : prev
+    );
+    return resp;
+  }, [auth]);
+
   useEffect(() => {
     fetchSolutions();
   }, [fetchSolutions]);
@@ -151,6 +205,8 @@ export function useSolutions(auth: AuthOptions) {
     getSolution,
     searchSolutions,
     clearSearch,
+    voteSolution,
+    clearVote,
     refetch: fetchSolutions,
   };
 }

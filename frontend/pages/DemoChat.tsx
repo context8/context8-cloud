@@ -107,8 +107,8 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
     try {
       const hasAuth = Boolean(auth.apiKey || auth.token);
       const detail = hasAuth
-        ? await solutionsService.get(auth, solutionId)
-        : await solutionsService.getPublic(solutionId);
+        ? await solutionsService.getEs(auth, solutionId)
+        : await solutionsService.getPublicEs(solutionId);
       setSelectedSolution(detail);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load solution details');
