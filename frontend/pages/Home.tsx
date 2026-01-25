@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_BASE } from '../constants';
 import { Solution, ThemeMode, View } from '../types';
-import { Star, TrendingUp, Clock, FileText, Loader2 } from 'lucide-react';
+import { Star, TrendingUp, Clock, FileText, Loader2, Twitter, Mail } from 'lucide-react';
 
 type Props = {
   onViewChange?: (view: View) => void;
@@ -299,9 +299,35 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
         <div className={`mt-6 rounded-xl py-3 px-6 border ${isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-gray-50/30 border-gray-100'}`}>
           <div className={`text-xs flex items-center justify-between ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
             <span>{solutions.length} PUBLIC SOLUTIONS</span>
-            <a href="#" className={`flex items-center gap-1 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>
-              SEE ALL CATEGORIES →
-            </a>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://x.com/context8_org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-1 transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+              >
+                <Twitter size={14} />
+                <span>Follow us</span>
+              </a>
+              <a
+                href="mailto:contact@context8.cloud"
+                className={`flex items-center gap-1 transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+              >
+                <Mail size={14} />
+                <span>Contact</span>
+              </a>
+              <a
+                href="https://discord.gg/BDGVMmws"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-1 transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+              >
+                <span>Discord</span>
+              </a>
+              <a href="#" className={`flex items-center gap-1 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>
+                SEE ALL CATEGORIES →
+              </a>
+            </div>
           </div>
         </div>
       </div>

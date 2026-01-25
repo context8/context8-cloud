@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
-import { 
-  ChevronDown, 
-  Plus, 
-  Bug, 
-  X as XIcon, // Renamed to avoid confusion if needed, but lucide exports X for close icon usually. Using basic svg for Twitter X.
-  ExternalLink,
-  Github
+import React from 'react';
+import {
+  ChevronDown,
+  Plus,
+  Bug
 } from 'lucide-react';
 import { ThemeMode, View } from '../types';
 
@@ -30,7 +27,6 @@ export const Layout: React.FC<LayoutProps> = ({
   onToggleTheme,
   hideChrome,
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isDark = theme === 'dark';
 
   return (
@@ -74,8 +70,11 @@ export const Layout: React.FC<LayoutProps> = ({
 
           <div className="flex items-center gap-4 text-sm">
             <nav className={`hidden md:flex items-center gap-6 font-medium ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-              <a href="#" className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Plans</a>
-              <a href="#" className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Learn</a>
+              <button
+                type="button"
+                onClick={() => onViewChange('learn')}
+                className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+              >Learn</button>
               <button
                 type="button"
                 onClick={() => onViewChange('demo')}
@@ -139,9 +138,10 @@ export const Layout: React.FC<LayoutProps> = ({
               
               <div className="flex items-center gap-6">
                 <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>About</a>
-                <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Contact</a>
+                <a href="mailto:contact@context8.cloud" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Contact</a>
                 <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Legal</a>
-                <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Follow on X</a>
+                <a href="https://x.com/context8_org" target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>X</a>
+                <a href="https://discord.gg/BDGVMmws" target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Discord</a>
               </div>
             </div>
           </footer>

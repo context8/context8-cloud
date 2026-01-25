@@ -4,6 +4,7 @@ import { Home } from './pages/Home';
 import { DashboardContainer } from './pages/Dashboard/DashboardContainer';
 import { Login } from './pages/Login';
 import { DemoChat } from './pages/DemoChat';
+import { Learn } from './pages/Learn';
 import { ThemeMode, View } from './types';
 import { setUnauthorizedHandler } from './services/api/client';
 
@@ -100,6 +101,7 @@ const App: React.FC = () => {
         <DashboardContainer sessionState={sessionValue} theme={theme} />
       )}
       {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} onViewChange={setCurrentView} onToggleTheme={handleToggleTheme} />}
+      {currentView === 'learn' && <Learn onViewChange={setCurrentView} theme={theme} />}
     </Layout>
   );
 };
