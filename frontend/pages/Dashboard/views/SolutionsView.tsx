@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles } from 'lucide-react';
+import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { SolutionCard } from '@/components/Dashboard/SolutionCard';
 import { SolutionListItem } from '@/components/Dashboard/SolutionListItem';
 import { SolutionCardSkeleton } from '@/components/Dashboard/SolutionCardSkeleton';
@@ -53,6 +53,8 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     getSolution,
     searchSolutions,
     clearSearch,
+    voteSolution,
+    clearVote,
   } = useSolutions(authOptions);
   const { toasts, success, error, dismiss } = useToast();
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -98,6 +100,9 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
       errorMessage: item.errorMessage,
       solution: item.solution,
       isPublic: item.isPublic,
+      upvotes: item.upvotes,
+      downvotes: item.downvotes,
+      voteScore: item.voteScore,
     });
 
     let filtered = searchResults
@@ -205,6 +210,25 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     setSelectedSolution(null);
     updateSolutionIdInUrl(null, false);
   }, [updateSolutionIdInUrl]);
+
+  const handleVote = useCallback(async (value: 1 | -1) => {
+    if (!selectedSolution) return;
+    try {
+      const current = selectedSolution.myVote ?? null;
+      const resp = current === value
+        ? await clearVote(selectedSolution.id)
+        : await voteSolution(selectedSolution.id, value);
+      setSelectedSolution((prev) => prev ? ({
+        ...prev,
+        upvotes: resp.upvotes,
+        downvotes: resp.downvotes,
+        voteScore: resp.voteScore,
+        myVote: resp.myVote ?? null,
+      }) : prev);
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'Failed to vote');
+    }
+  }, [selectedSolution, voteSolution, clearVote, error]);
 
   const handleClearFilters = useCallback(() => {
     setPublicFilter('all');
@@ -473,11 +497,48 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
         {selectedSolution && (
           <div className="space-y-6">
             {/* Header with badges */}
-            <div className="flex items-center gap-3">
-              <ErrorTypeBadge type={selectedSolution.errorType} size="md" theme={theme} />
-              {selectedSolution.tags && selectedSolution.tags.length > 0 && (
-                <TagCloud tags={selectedSolution.tags} maxVisible={5} size="sm" theme={theme} />
-              )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <ErrorTypeBadge type={selectedSolution.errorType} size="md" theme={theme} />
+                {selectedSolution.tags && selectedSolution.tags.length > 0 && (
+                  <TagCloud tags={selectedSolution.tags} maxVisible={5} size="sm" theme={theme} />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleVote(1)}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border
+                    ${isDark
+                      ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }
+                    ${selectedSolution.myVote === 1 ? (isDark ? 'border-emerald-500/50 text-emerald-400' : 'border-emerald-400 text-emerald-700') : ''}
+                  `}
+                  title="Upvote"
+                >
+                  <ThumbsUp size={16} />
+                  <span>{selectedSolution.upvotes ?? 0}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleVote(-1)}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border
+                    ${isDark
+                      ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }
+                    ${selectedSolution.myVote === -1 ? (isDark ? 'border-red-500/50 text-red-400' : 'border-red-300 text-red-600') : ''}
+                  `}
+                  title="Downvote"
+                >
+                  <ThumbsDown size={16} />
+                  <span>{selectedSolution.downvotes ?? 0}</span>
+                </button>
+              </div>
             </div>
 
             {isDetailLoading && (
