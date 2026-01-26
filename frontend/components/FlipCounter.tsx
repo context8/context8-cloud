@@ -144,7 +144,7 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
           ${isDark ? 'border-slate-800' : 'border-emerald-200/50'}
         `}
       >
-        {/* Velocity */}
+        {/* Daily Growth */}
         <div className="flex items-center gap-2">
           <Activity
             size={16}
@@ -157,7 +157,7 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
                 ${isDark ? 'text-slate-500' : 'text-emerald-600/70'}
               `}
             >
-              Current Velocity
+              Daily Growth
             </span>
             <span
               className={`
@@ -165,7 +165,7 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
                 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}
               `}
             >
-              +{velocity} / 2s
+              +{velocity}%
             </span>
           </div>
         </div>
