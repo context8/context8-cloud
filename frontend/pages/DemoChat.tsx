@@ -46,7 +46,6 @@ const initialMessages: ChatMessage[] = [
 export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, onToggleTheme }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-  const [error, setError] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -111,14 +110,13 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
         : await solutionsService.getPublicEs(solutionId);
       setSelectedSolution(detail);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load solution details');
+      console.error('[DemoChat] Failed to load solution details:', err);
     } finally {
       setIsDetailLoading(false);
     }
   };
 
   const handleSend = async (prompt: string) => {
-    setError(null);
     setStatus('loading');
 
     const userMessage: ChatMessage = {
@@ -182,7 +180,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
       });
     } catch (err: any) {
       setStatus('error');
-      setError(err?.message || 'Assistant failed');
+      console.error('[DemoChat] Assistant error:', err?.message || err);
       updateMessage(assistantId, {
         content: 'I hit an error while contacting the assistant. Please try again.',
       });
@@ -191,7 +189,6 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
 
   const resetChat = () => {
     setMessages(initialMessages);
-    setError(null);
     setStatus('idle');
     setSuggestions([]);
     setResetToken((prev) => prev + 1);
@@ -430,11 +427,6 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
           onToggleDeepThinking={() => setDeepThinkingEnabled((prev) => !prev)}
           suggestions={suggestions}
         />
-        {error && (
-          <div className="max-w-4xl mx-auto px-6 pb-4">
-            <p className="text-xs text-red-500">{error}</p>
-          </div>
-        )}
       </div>
 
       <Modal
