@@ -97,14 +97,17 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
           className={inputClass}
         >
           <option value="">Select error type</option>
-          <option value="compile">Compile Error</option>
-          <option value="runtime">Runtime Error</option>
-          <option value="configuration">Configuration Error</option>
-          <option value="dependency">Dependency Error</option>
-          <option value="network">Network Error</option>
-          <option value="logic">Logic Error</option>
-          <option value="performance">Performance Issue</option>
-          <option value="security">Security Issue</option>
+          <option value="feature_request">Feature Request</option>
+          <option value="question_support">Question/Support</option>
+          <option value="api_integration">API/Integration</option>
+          <option value="ui_ux">UI/UX</option>
+          <option value="build_ci">Build/CI</option>
+          <option value="install_setup">Install/Setup</option>
+          <option value="docs_request">Docs Request</option>
+          <option value="compatibility">Compatibility</option>
+          <option value="licensing">Licensing</option>
+          <option value="data_quality">Data Quality</option>
+          <option value="ops_infra">Ops/Infra</option>
           <option value="other">Other</option>
         </select>
       </div>
