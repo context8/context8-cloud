@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { FlipDigit } from './FlipDigit';
+import SlotCounter from 'react-slot-counter';
 import { fetchSolutionStats } from '../services/api/stats';
 import { Activity, Users } from 'lucide-react';
 
@@ -8,12 +8,12 @@ interface FlipCounterProps {
 }
 
 export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
-  const [displayValue, setDisplayValue] = useState(0);
   const [targetValue, setTargetValue] = useState(0);
   const [velocity, setVelocity] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const catchUpRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const liveUpdateRef = useRef<NodeJS.Timeout | null>(null);
+  const counterRef = useRef<any>(null);
 
   // Fetch stats from API
   const loadStats = useCallback(async () => {
@@ -33,39 +33,27 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     loadStats();
   }, [loadStats]);
 
-  // Catch-up animation: fast start, slow down as approaching target
+  // Trigger dramatic animation on first load
   useEffect(() => {
-    if (displayValue >= targetValue) {
-      if (catchUpRef.current) {
-        clearTimeout(catchUpRef.current);
-        catchUpRef.current = null;
-      }
-      return;
+    if (!isLoading && targetValue > 0 && !hasAnimated) {
+      setHasAnimated(true);
+      // Small delay to ensure component is mounted
+      setTimeout(() => {
+        counterRef.current?.startAnimation({
+          duration: 2.5,
+          dummyCharacterCount: 25,
+        });
+      }, 100);
     }
+  }, [isLoading, targetValue, hasAnimated]);
 
-    const diff = targetValue - displayValue;
-    // Start fast, slow down exponentially
-    const step = Math.max(1, Math.floor(diff / 10));
-    const delay = diff > 100 ? 30 : diff > 50 ? 50 : diff > 10 ? 80 : 120;
-
-    catchUpRef.current = setTimeout(() => {
-      setDisplayValue(prev => Math.min(prev + step, targetValue));
-    }, delay);
-
-    return () => {
-      if (catchUpRef.current) {
-        clearTimeout(catchUpRef.current);
-      }
-    };
-  }, [displayValue, targetValue]);
-
-  // Live updates every 2 seconds
+  // Live updates every 5 seconds (less frequent to avoid animation interruption)
   useEffect(() => {
     if (isLoading) return;
 
     liveUpdateRef.current = setInterval(() => {
       loadStats();
-    }, 2000);
+    }, 5000);
 
     return () => {
       if (liveUpdateRef.current) {
@@ -74,21 +62,8 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     };
   }, [isLoading, loadStats]);
 
-  // Format number with commas and pad to 9 digits
-  const formatNumber = (num: number): string[] => {
-    const padded = num.toString().padStart(9, '0');
-    const parts: string[] = [];
-    for (let i = 0; i < padded.length; i++) {
-      parts.push(padded[i]);
-      // Add comma positions (after 3rd and 6th digits from right)
-      if ((padded.length - i - 1) % 3 === 0 && i < padded.length - 1) {
-        parts.push(',');
-      }
-    }
-    return parts;
-  };
-
-  const digits = formatNumber(displayValue);
+  // Format number with commas
+  const formattedValue = targetValue.toLocaleString('en-US');
 
   return (
     <div
@@ -102,27 +77,27 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     >
       {/* Counter display */}
       <div className="flex justify-center items-center mb-4">
-        <div className="flex items-center">
-          {digits.map((char, idx) => (
-            char === ',' ? (
-              <span
-                key={`sep-${idx}`}
-                className={`
-                  text-2xl font-bold mx-1
-                  ${isDark ? 'text-slate-600' : 'text-emerald-300'}
-                `}
-              >
-                ,
-              </span>
-            ) : (
-              <FlipDigit
-                key={`digit-${idx}`}
-                digit={char}
-                isDark={isDark}
-              />
-            )
-          ))}
-        </div>
+        <SlotCounter
+          ref={counterRef}
+          value={formattedValue}
+          startValue="000,000,000"
+          startValueOnce
+          duration={2}
+          dummyCharacterCount={20}
+          speed={1.8}
+          animateUnchanged
+          charClassName={`
+            text-3xl md:text-4xl font-bold
+            ${isDark ? 'text-emerald-400' : 'text-emerald-600'}
+          `}
+          separatorClassName={`
+            text-3xl md:text-4xl font-bold mx-0.5
+            ${isDark ? 'text-slate-600' : 'text-emerald-300'}
+          `}
+          containerClassName="flex items-center"
+          sequentialAnimationMode={false}
+          useMonospaceWidth
+        />
       </div>
 
       {/* Label */}
