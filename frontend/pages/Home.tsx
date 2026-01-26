@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_BASE } from '../constants';
 import { Solution, ThemeMode, View } from '../types';
 import { Star, TrendingUp, Clock, FileText, Loader2, Twitter, Mail } from 'lucide-react';
+import { FlipCounter } from '../components/FlipCounter';
 
 type Props = {
   onViewChange?: (view: View) => void;
@@ -114,6 +115,11 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
         <p className={`text-lg max-w-2xl ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
           Browse thousands of real-world error fixes shared by developers. Search by error message, tags, or technology.
         </p>
+      </div>
+
+      {/* Flip Counter */}
+      <div className="w-full max-w-2xl">
+        <FlipCounter isDark={isDark} />
       </div>
 
       {/* Search Section */}
