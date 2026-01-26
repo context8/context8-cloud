@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import SlotCounter from 'react-slot-counter';
 import { fetchSolutionStats } from '../services/api/stats';
 import { Activity, Users } from 'lucide-react';
 
@@ -7,13 +6,85 @@ interface FlipCounterProps {
   isDark: boolean;
 }
 
+interface RollingDigitProps {
+  digit: number;
+  isDark: boolean;
+}
+
+// Height of each digit cell in pixels
+const DIGIT_HEIGHT = 48;
+
+// Single rolling digit - shows vertical scroll through 0-9
+const RollingDigit: React.FC<RollingDigitProps> = ({ digit, isDark }) => {
+  const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  return (
+    <div
+      className={`
+        relative overflow-hidden
+        ${isDark ? 'bg-slate-800/40' : 'bg-emerald-100/40'}
+        rounded-md
+      `}
+      style={{
+        height: `${DIGIT_HEIGHT}px`,
+        width: '28px',
+      }}
+    >
+      <div
+        className="flex flex-col transition-transform duration-75 ease-out"
+        style={{
+          transform: `translateY(-${digit * DIGIT_HEIGHT}px)`,
+        }}
+      >
+        {digits.map((d) => (
+          <div
+            key={d}
+            className={`
+              flex items-center justify-center
+              font-semibold tabular-nums
+              ${isDark ? 'text-emerald-400' : 'text-emerald-600'}
+            `}
+            style={{
+              height: `${DIGIT_HEIGHT}px`,
+              fontSize: '32px',
+              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+            }}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Separator (comma) - smaller and more subtle
+const Separator: React.FC<{ isDark: boolean }> = ({ isDark }) => (
+  <span
+    className={`
+      font-medium
+      ${isDark ? 'text-slate-600' : 'text-emerald-300/70'}
+    `}
+    style={{
+      fontSize: '20px',
+      lineHeight: `${DIGIT_HEIGHT}px`,
+      margin: '0 2px',
+    }}
+  >
+    ,
+  </span>
+);
+
 export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
-  const [targetValue, setTargetValue] = useState(0);
+  const [targetValue, setTargetValue] = useState<number | null>(null);
+  const [displayValue, setDisplayValue] = useState(0);
   const [velocity, setVelocity] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasAnimated, setHasAnimated] = useState(false);
   const liveUpdateRef = useRef<NodeJS.Timeout | null>(null);
-  const counterRef = useRef<any>(null);
+  const startTimeRef = useRef<number | null>(null);
+
+  // Target duration: 7-10 seconds for the entire animation
+  const TARGET_DURATION_MS = 8000;
 
   // Fetch stats from API
   const loadStats = useCallback(async () => {
@@ -33,27 +104,72 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     loadStats();
   }, [loadStats]);
 
-  // Trigger dramatic animation on first load
+  // Animate counting with time-based deceleration
   useEffect(() => {
-    if (!isLoading && targetValue > 0 && !hasAnimated) {
-      setHasAnimated(true);
-      // Small delay to ensure component is mounted
-      setTimeout(() => {
-        counterRef.current?.startAnimation({
-          duration: 2.5,
-          dummyCharacterCount: 25,
-        });
-      }, 100);
+    if (targetValue === null) return;
+    if (displayValue >= targetValue) {
+      startTimeRef.current = null;
+      return;
     }
-  }, [isLoading, targetValue, hasAnimated]);
 
-  // Live updates every 5 seconds (less frequent to avoid animation interruption)
+    // Initialize start time on first frame
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+
+    const elapsed = Date.now() - startTimeRef.current;
+    const remaining = targetValue - displayValue;
+
+    // Calculate time-based progress (0 to 1)
+    const timeProgress = Math.min(elapsed / TARGET_DURATION_MS, 1);
+
+    // Quadratic ease-out: fast start, slow end
+    const targetProgress = 1 - Math.pow(1 - timeProgress, 2);
+    const targetDisplayValue = Math.floor(targetValue * targetProgress);
+
+    // Calculate step to reach target display value
+    let step = targetDisplayValue - displayValue;
+
+    if (step < 1 && displayValue < targetValue) {
+      step = 1;
+    }
+
+    // Calculate interval based on time progress
+    let interval: number;
+    if (timeProgress < 0.7) {
+      interval = 1 + timeProgress * 5;
+    } else if (timeProgress < 0.9) {
+      interval = 5 + (timeProgress - 0.7) * 125;
+    } else {
+      interval = 30 + (timeProgress - 0.9) * 700;
+    }
+
+    // Dramatic slowdown for final counts
+    if (remaining <= 10) {
+      interval = Math.max(interval, 80);
+      step = 1;
+    } else if (remaining <= 50) {
+      interval = Math.max(interval, 40);
+      step = Math.min(step, 3);
+    } else if (remaining <= 200) {
+      interval = Math.max(interval, 20);
+      step = Math.min(step, 10);
+    }
+
+    const timer = setTimeout(() => {
+      setDisplayValue(prev => Math.min(prev + Math.max(1, step), targetValue));
+    }, interval);
+
+    return () => clearTimeout(timer);
+  }, [displayValue, targetValue]);
+
+  // Live updates every 15 seconds
   useEffect(() => {
     if (isLoading) return;
 
     liveUpdateRef.current = setInterval(() => {
       loadStats();
-    }, 5000);
+    }, 15000);
 
     return () => {
       if (liveUpdateRef.current) {
@@ -62,8 +178,13 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     };
   }, [isLoading, loadStats]);
 
-  // Format number with commas
-  const formattedValue = targetValue.toLocaleString('en-US');
+  // Convert number to array of 9 digits
+  const getDigits = (num: number): number[] => {
+    const padded = num.toString().padStart(9, '0');
+    return padded.split('').map(d => parseInt(d, 10));
+  };
+
+  const digits = getDigits(displayValue);
 
   return (
     <div
@@ -77,27 +198,26 @@ export const FlipCounter: React.FC<FlipCounterProps> = ({ isDark }) => {
     >
       {/* Counter display */}
       <div className="flex justify-center items-center mb-4">
-        <SlotCounter
-          ref={counterRef}
-          value={formattedValue}
-          startValue="000,000,000"
-          startValueOnce
-          duration={2}
-          dummyCharacterCount={20}
-          speed={1.8}
-          animateUnchanged
-          charClassName={`
-            text-3xl md:text-4xl font-bold
-            ${isDark ? 'text-emerald-400' : 'text-emerald-600'}
-          `}
-          separatorClassName={`
-            text-3xl md:text-4xl font-bold mx-0.5
-            ${isDark ? 'text-slate-600' : 'text-emerald-300'}
-          `}
-          containerClassName="flex items-center"
-          sequentialAnimationMode={false}
-          useMonospaceWidth
-        />
+        <div className="flex items-center gap-1">
+          {/* First group: XXX */}
+          <RollingDigit digit={digits[0]} isDark={isDark} />
+          <RollingDigit digit={digits[1]} isDark={isDark} />
+          <RollingDigit digit={digits[2]} isDark={isDark} />
+
+          <Separator isDark={isDark} />
+
+          {/* Second group: XXX */}
+          <RollingDigit digit={digits[3]} isDark={isDark} />
+          <RollingDigit digit={digits[4]} isDark={isDark} />
+          <RollingDigit digit={digits[5]} isDark={isDark} />
+
+          <Separator isDark={isDark} />
+
+          {/* Third group: XXX */}
+          <RollingDigit digit={digits[6]} isDark={isDark} />
+          <RollingDigit digit={digits[7]} isDark={isDark} />
+          <RollingDigit digit={digits[8]} isDark={isDark} />
+        </div>
       </div>
 
       {/* Label */}
