@@ -283,7 +283,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
                   </div>
                 </div>
               )}
-              <div className="flex flex-col gap-3 max-w-[85%] w-full">
+              <div className="flex flex-col gap-3 max-w-[85%] w-full overflow-hidden">
                 <div
                   className={`rounded-2xl border px-4 py-3 shadow-sm transition-all ${
                     msg.role === 'user'
@@ -345,25 +345,25 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
                         {msg.hits.length} found
                       </span>
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 w-full">
                       {msg.hits.slice(0, 5).map((hit) => (
                         <div
                           key={hit.id}
-                          className={`rounded-xl border p-3 transition-colors ${
+                          className={`rounded-xl border p-3 transition-colors overflow-hidden ${
                             isDark
                               ? 'bg-slate-950 border-slate-800 hover:border-emerald-500/40'
                               : 'bg-white border-slate-200 hover:border-emerald-300'
                           }`}
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1 overflow-hidden">
+                              <div className="flex items-center gap-2 min-w-0">
                                 <ErrorTypeBadge type={hit.errorType} size="sm" theme={theme} />
-                                <span className={`text-sm font-semibold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                                <span className={`text-sm font-semibold truncate block ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                   {hit.title || 'Untitled Solution'}
                                 </span>
                               </div>
-                              <p className={`mt-2 text-xs line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                              <p className={`mt-2 text-xs line-clamp-2 break-words ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                 {buildHitPreview(hit)}
                               </p>
                             </div>
@@ -380,7 +380,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
                             </button>
                           </div>
                           {hit.tags && hit.tags.length > 0 && (
-                            <div className="mt-2">
+                            <div className="mt-2 overflow-hidden">
                               <TagCloud tags={hit.tags} maxVisible={4} size="sm" theme={theme} />
                             </div>
                           )}
