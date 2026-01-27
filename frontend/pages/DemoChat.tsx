@@ -268,9 +268,9 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
 
       <main
         ref={chatScrollRef}
-        className={`flex-1 relative overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-white'}`}
+        className={`flex-1 relative overflow-y-auto overflow-x-hidden ${isDark ? 'bg-slate-950' : 'bg-white'}`}
       >
-        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8 overflow-hidden">
           {messages.map((msg) => (
             <div
               key={msg.id}
