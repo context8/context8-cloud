@@ -20,10 +20,45 @@ const normalizeSolution = (item: Solution & { is_public?: boolean; isPublic?: bo
 
 const normalizeSolutionList = (items: Solution[]): Solution[] => items.map(normalizeSolution);
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ListOptions {
+  limit?: number;
+  offset?: number;
+}
+
 export const solutionsService = {
-  async list(auth: AuthOptions): Promise<Solution[]> {
-    const data = await request<Solution[]>('/solutions', { method: 'GET' }, auth);
-    return normalizeSolutionList(data);
+  async list(auth: AuthOptions, options: ListOptions = {}): Promise<PaginatedResponse<Solution>> {
+    const { limit = 25, offset = 0 } = options;
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    const data = await request<PaginatedResponse<Solution> | Solution[]>(
+      `/solutions?${params}`,
+      { method: 'GET' },
+      auth
+    );
+
+    // Handle both array and paginated response formats for backward compatibility
+    if (Array.isArray(data)) {
+      return {
+        items: normalizeSolutionList(data),
+        total: data.length,
+        limit,
+        offset,
+      };
+    }
+
+    return {
+      ...data,
+      items: normalizeSolutionList(data.items),
+    };
   },
 
   async get(auth: AuthOptions, id: string): Promise<Solution> {

@@ -11,6 +11,7 @@ import { Dropdown } from '@/components/Common/Dropdown';
 import { ErrorTypeBadge, getErrorTypeOptions, normalizeErrorType } from '@/components/Common/ErrorTypeBadge';
 import { TagCloud } from '@/components/Common/TagCloud';
 import { MarkdownRenderer } from '@/components/Common/MarkdownRenderer';
+import { Pagination } from '@/components/Common/Pagination';
 import { useSolutions } from '@/hooks/useSolutions';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Common/Toast';
@@ -47,6 +48,9 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     searchResults,
     isLoading,
     isSearching,
+    pagination,
+    setPage,
+    setPageSize,
     createSolution,
     deleteSolution,
     togglePublic,
@@ -80,13 +84,14 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     }
   }, [debouncedQuery, searchSolutions, clearSearch]);
 
-  // Count stats
+  // Count stats - use pagination.total for accurate count
   const stats = useMemo(() => {
-    const total = solutions.length;
+    const total = pagination.total;
+    // Note: publicCount/privateCount are only for current page since we don't have totals from API
     const publicCount = solutions.filter(s => s.isPublic).length;
     const privateCount = solutions.filter(s => !s.isPublic).length;
     return { total, publicCount, privateCount };
-  }, [solutions]);
+  }, [solutions, pagination.total]);
 
   // Filter and sort solutions
   const displaySolutions = useMemo(() => {
@@ -471,6 +476,18 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
         <div className={`text-center text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{debouncedQuery}"
         </div>
+      )}
+
+      {/* Pagination - only show when not in search mode */}
+      {!searchResults && pagination.total > 0 && (
+        <Pagination
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          total={pagination.total}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          theme={theme}
+        />
       )}
 
       {/* Create Modal */}

@@ -3,26 +3,44 @@ import { solutionsService, SolutionCreate } from '../services/api/solutions';
 import { Solution, SearchResult } from '../types';
 import { AuthOptions } from '../services/api/client';
 
+export interface PaginationState {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export function useSolutions(auth: AuthOptions) {
   const [solutions, setSolutions] = useState<Solution[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
+    page: 1,
+    pageSize: 25,
+    total: 0,
+  });
   const searchAbortRef = useRef<AbortController | null>(null);
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchSolutions = useCallback(async () => {
+  const fetchSolutions = useCallback(async (page = 1, pageSize = 25) => {
     if (!auth.token && !auth.apiKey && (!auth.apiKeys || auth.apiKeys.length === 0)) {
       setSolutions([]);
+      setPagination((prev) => ({ ...prev, total: 0 }));
       return;
     }
 
     setIsLoading(true);
     setError(null);
     try {
-      const data = await solutionsService.list(auth);
-      setSolutions(data);
+      const offset = (page - 1) * pageSize;
+      const data = await solutionsService.list(auth, { limit: pageSize, offset });
+      setSolutions(data.items);
+      setPagination({
+        page,
+        pageSize,
+        total: data.total,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch solutions');
       setSolutions([]);
@@ -30,6 +48,17 @@ export function useSolutions(auth: AuthOptions) {
       setIsLoading(false);
     }
   }, [auth.token, auth.apiKey, auth.apiKeys?.join(',')]);
+
+  const setPage = useCallback((page: number) => {
+    setPagination((prev) => {
+      fetchSolutions(page, prev.pageSize);
+      return prev;
+    });
+  }, [fetchSolutions]);
+
+  const setPageSize = useCallback((pageSize: number) => {
+    fetchSolutions(1, pageSize);
+  }, [fetchSolutions]);
 
   const createSolution = useCallback(async (data: SolutionCreate) => {
     setIsLoading(true);
@@ -199,6 +228,9 @@ export function useSolutions(auth: AuthOptions) {
     isLoading,
     isSearching,
     error,
+    pagination,
+    setPage,
+    setPageSize,
     createSolution,
     deleteSolution,
     togglePublic,
