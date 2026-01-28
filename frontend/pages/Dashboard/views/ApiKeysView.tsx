@@ -1,26 +1,42 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Key } from 'lucide-react';
-import { ApiKeyCard } from '../../../components/Dashboard/ApiKeyCard';
+import { ApiKeyCard, ApiKeyStats } from '../../../components/Dashboard/ApiKeyCard';
 import { Button } from '../../../components/Common/Button';
 import { Modal } from '../../../components/Common/Modal';
 import { Toggle } from '../../../components/Common/Toggle';
 import { useApiKeys } from '../../../hooks/useApiKeys';
 import { useToast } from '../../../hooks/useToast';
 import { ToastContainer } from '../../../components/Common/Toast';
+import { apiKeysService } from '../../../services/api/apiKeys';
 import { ThemeMode } from '../../../types';
 
 export interface ApiKeysViewProps {
   token: string | null;
   theme: ThemeMode;
-  solutionCounts?: Record<string, number>;
 }
 
 export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
   token,
   theme,
-  solutionCounts = {},
 }) => {
   const { apiKeys, isLoading, createApiKey, deleteApiKey, togglePublic } = useApiKeys(token);
+  const [keyStats, setKeyStats] = useState<Record<string, ApiKeyStats>>({});
+
+  // Fetch stats for all API keys
+  useEffect(() => {
+    if (!token || apiKeys.length === 0) return;
+
+    const fetchStats = async () => {
+      try {
+        const stats = await apiKeysService.getStats(token);
+        setKeyStats(stats);
+      } catch (err) {
+        console.error('Failed to fetch API key stats:', err);
+      }
+    };
+
+    fetchStats();
+  }, [token, apiKeys]);
   const { toasts, success, error, dismiss } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -155,7 +171,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({
               onTogglePublic={handleTogglePublic}
               onCopy={() => success('API Key ID copied to clipboard')}
               theme={theme}
-              solutionCount={solutionCounts[apiKey.id]}
+              stats={keyStats[apiKey.id]}
             />
           ))}
         </div>

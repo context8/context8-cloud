@@ -1,10 +1,18 @@
 import { request } from './client';
 import { ApiKey } from '../../types';
+import { ApiKeyStats } from '../../components/Dashboard/ApiKeyCard';
 
 const normalizeApiKey = (item: ApiKey & { is_public?: boolean; isPublic?: boolean }): ApiKey => ({
   ...item,
   isPublic: item.isPublic ?? item.is_public,
 });
+
+export interface ApiKeyStatsResponse {
+  [keyId: string]: {
+    publicCount: number;
+    privateCount: number;
+  };
+}
 
 export const apiKeysService = {
   async list(token: string): Promise<ApiKey[]> {
@@ -38,5 +46,14 @@ export const apiKeysService = {
       { token }
     );
     return normalizeApiKey(data);
+  },
+
+  async getStats(token: string): Promise<Record<string, ApiKeyStats>> {
+    const data = await request<ApiKeyStatsResponse>(
+      '/apikeys/stats',
+      { method: 'GET' },
+      { token }
+    );
+    return data;
   },
 };

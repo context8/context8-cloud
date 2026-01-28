@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { Copy, Trash2, Key, Check, Lock, Unlock } from 'lucide-react';
+import { Copy, Trash2, Key, Check, Lock, Unlock, Globe, EyeOff } from 'lucide-react';
 import { ApiKey } from '../../types';
 import { Button } from '../Common/Button';
 import { Toggle } from '../Common/Toggle';
+
+export interface ApiKeyStats {
+  publicCount: number;
+  privateCount: number;
+}
 
 export interface ApiKeyCardProps {
   apiKey: ApiKey;
@@ -10,7 +15,7 @@ export interface ApiKeyCardProps {
   onTogglePublic?: (id: string, isPublic: boolean) => void;
   onCopy?: () => void;
   theme: 'light' | 'dark';
-  solutionCount?: number;
+  stats?: ApiKeyStats;
 }
 
 export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
@@ -19,7 +24,7 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
   onTogglePublic,
   onCopy,
   theme,
-  solutionCount = 0,
+  stats,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -98,16 +103,38 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
         </Button>
       </div>
 
+      {/* Stats */}
+      {stats && (
+        <div className={`flex items-center gap-3 mb-3 py-2 px-3 rounded-lg ${
+          theme === 'dark' ? 'bg-slate-800/50' : 'bg-gray-50'
+        }`}>
+          <div className="flex items-center gap-1.5">
+            <Globe size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
+            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              {stats.publicCount}
+            </span>
+            <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'}`}>
+              public
+            </span>
+          </div>
+          <div className={`w-px h-4 ${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-300'}`} />
+          <div className="flex items-center gap-1.5">
+            <EyeOff size={14} className={theme === 'dark' ? 'text-slate-400' : 'text-gray-500'} />
+            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>
+              {stats.privateCount}
+            </span>
+            <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'}`}>
+              private
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className={`text-xs pt-3 border-t ${
         theme === 'dark' ? 'border-slate-700 text-slate-400' : 'border-gray-200 text-gray-500'
       }`}>
         <div className="flex justify-between items-center mb-2">
           <span>Created: {apiKey.createdAt ? new Date(apiKey.createdAt).toLocaleDateString() : 'Unknown'}</span>
-          {solutionCount > 0 && (
-            <span className="text-xs">
-              {solutionCount} solution{solutionCount !== 1 ? 's' : ''}
-            </span>
-          )}
         </div>
         {onTogglePublic && apiKey.isPublic !== undefined && (
           <div className="flex items-center justify-between">
