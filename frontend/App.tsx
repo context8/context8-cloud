@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { DashboardContainer } from './pages/Dashboard/DashboardContainer';
@@ -84,25 +85,28 @@ const App: React.FC = () => {
   );
 
   return (
-    <Layout
-      currentView={currentView}
-      onViewChange={setCurrentView}
-      user={session ? { email: session.email } : undefined}
-      onLogout={session ? handleLogout : undefined}
-      theme={theme}
-      onToggleTheme={handleToggleTheme}
-      hideChrome={currentView === 'demo'}
-    >
-      {currentView === 'home' && <Home onViewChange={setCurrentView} theme={theme} />}
-      {currentView === 'login' && (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      )}
-      {currentView === 'dashboard' && (
-        <DashboardContainer sessionState={sessionValue} theme={theme} />
-      )}
-      {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} onViewChange={setCurrentView} onToggleTheme={handleToggleTheme} />}
-      {currentView === 'learn' && <Learn onViewChange={setCurrentView} theme={theme} />}
-    </Layout>
+    <>
+      <Layout
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        user={session ? { email: session.email } : undefined}
+        onLogout={session ? handleLogout : undefined}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+        hideChrome={currentView === 'demo'}
+      >
+        {currentView === 'home' && <Home onViewChange={setCurrentView} theme={theme} />}
+        {currentView === 'login' && (
+          <Login onLoginSuccess={handleLoginSuccess} />
+        )}
+        {currentView === 'dashboard' && (
+          <DashboardContainer sessionState={sessionValue} theme={theme} />
+        )}
+        {currentView === 'demo' && <DemoChat sessionState={sessionValue} theme={theme} onViewChange={setCurrentView} onToggleTheme={handleToggleTheme} />}
+        {currentView === 'learn' && <Learn onViewChange={setCurrentView} theme={theme} />}
+      </Layout>
+      <Analytics />
+    </>
   );
 };
 
