@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { API_BASE } from '../constants';
-import { Mail, ArrowRight, Check, AlertCircle, Clock } from 'lucide-react';
+import { Mail, ArrowRight, Check, AlertCircle, Clock, Rocket } from 'lucide-react';
 
 interface LoginProps {
   onLoginSuccess: (token: string, user: { id: string; email: string }) => void;
@@ -97,14 +97,25 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Coming Soon Banner */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center gap-3">
+          <div className="p-2 bg-amber-100 rounded-lg">
+            <Rocket size={20} className="text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Coming Soon</p>
+            <p className="text-xs text-amber-600">Registration is currently closed. Existing users only.</p>
+          </div>
+        </div>
+
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-emerald-900 mb-2">
-            Welcome to Context8
+            Sign In to Context8
           </h1>
           <p className="text-gray-500">
             {step === 'email'
-              ? 'Enter your email to get started'
+              ? 'Enter your registered email to sign in'
               : 'Enter the verification code sent to your email'}
           </p>
         </div>
@@ -172,7 +183,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                   </>
                 ) : (
                   <>
-                    Send Verification Code
+                    Continue
                     <ArrowRight size={18} />
                   </>
                 )}
@@ -254,7 +265,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>
-            By signing in, you agree to our{' '}
+            By continuing, you agree to our{' '}
             <a href="#" className="text-emerald-600 hover:text-emerald-700 underline">
               Terms of Service
             </a>{' '}
@@ -262,6 +273,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             <a href="#" className="text-emerald-600 hover:text-emerald-700 underline">
               Privacy Policy
             </a>
+          </p>
+          <p className="mt-3 text-xs text-gray-400">
+            New user? Registration opens soon.
           </p>
         </div>
       </div>

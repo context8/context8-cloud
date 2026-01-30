@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_BASE } from '../constants';
 import { Solution, ThemeMode, View } from '../types';
-import { Star, TrendingUp, Clock, FileText, Loader2, Twitter, Mail } from 'lucide-react';
+import { Star, TrendingUp, Clock, FileText, Loader2, Twitter, Mail, Rocket } from 'lucide-react';
 import { FlipCounter } from '../components/FlipCounter';
 
 type Props = {
@@ -103,8 +103,23 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
 
   return (
     <div className={`flex flex-col items-start gap-8 w-full ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+      {/* Coming Soon Banner */}
+      <div className={`w-full p-4 rounded-xl flex items-center gap-4 ${isDark ? 'bg-gradient-to-r from-amber-950/40 to-orange-950/40 border border-amber-800/50' : 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200'}`}>
+        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-amber-900/50' : 'bg-amber-100'}`}>
+          <Rocket size={22} className={isDark ? 'text-amber-400' : 'text-amber-600'} />
+        </div>
+        <div className="flex-1">
+          <p className={`font-semibold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+            Coming Soon — Public Beta
+          </p>
+          <p className={`text-sm ${isDark ? 'text-amber-400/80' : 'text-amber-600'}`}>
+            Context8 is launching soon. Browse public solutions now, registration opens shortly.
+          </p>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="w-full pt-8 pb-4">
+      <div className="w-full pt-4 pb-4">
         <h1 className={`text-3xl md:text-4xl font-bold mb-3 tracking-tight ${isDark ? 'text-slate-100' : 'text-emerald-900'}`}>
           Context8: Community Error Solutions
           <br />
