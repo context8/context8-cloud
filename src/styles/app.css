@@ -121,6 +121,196 @@ body {
   }
 }
 
+@layer components {
+  .sb .docs-content h1 {
+    color: hsl(var(--sb-fg));
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.25rem 0;
+  }
+
+  .sb .docs-content h2 {
+    color: hsl(var(--sb-fg));
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2.5rem 0 1rem 0;
+    scroll-margin-top: 6.5rem;
+  }
+
+  .sb .docs-content h3 {
+    color: hsl(var(--sb-fg));
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.75rem 0;
+    scroll-margin-top: 6.5rem;
+  }
+
+  .sb .docs-content p {
+    color: hsl(var(--sb-fg-light));
+    line-height: 1.75;
+    margin: 0.75rem 0;
+  }
+
+  .sb .docs-content a {
+    color: hsl(var(--sb-brand));
+    text-decoration: none;
+  }
+  .sb .docs-content a:hover {
+    text-decoration: underline;
+  }
+
+  .sb .docs-content ul,
+  .sb .docs-content ol {
+    color: hsl(var(--sb-fg-light));
+    margin: 0.75rem 0;
+    padding-left: 1.25rem;
+  }
+
+  .sb .docs-content li {
+    margin: 0.25rem 0;
+  }
+
+  .sb .docs-content code {
+    font-family: var(--font-geist-mono);
+    font-size: 0.875em;
+    color: hsl(var(--sb-fg));
+    background: hsl(var(--sb-fg) / 0.06);
+    border: 1px solid hsl(var(--sb-border));
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.375rem;
+  }
+
+  .sb .docs-content pre {
+    background: hsl(var(--sb-bg) / 0.55);
+    border: 1px solid hsl(var(--sb-border));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    overflow: auto;
+    margin: 1rem 0;
+  }
+
+  .sb .docs-content pre code {
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .sb .docs-nav-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    color: hsl(var(--sb-fg-light));
+    background: transparent;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .sb .docs-nav-item:hover {
+    color: hsl(var(--sb-fg));
+    background: hsl(var(--sb-fg) / 0.06);
+    border-color: hsl(var(--sb-border));
+  }
+
+  .sb .docs-nav-item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--sb-fg-light)), 0 0 0 4px hsl(var(--sb-bg));
+  }
+
+  .sb .docs-nav-item[data-active='true'] {
+    color: hsl(var(--sb-fg));
+    background: hsl(var(--sb-fg) / 0.08);
+    border-color: hsl(var(--sb-border));
+  }
+
+  .sb .sb-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 0.875rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(var(--sb-border));
+    background: hsl(var(--sb-bg) / 0.55);
+    color: hsl(var(--sb-fg));
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .sb .sb-input::placeholder {
+    color: hsl(var(--sb-fg-light));
+  }
+
+  .sb .sb-input:focus {
+    outline: none;
+    border-color: hsl(var(--sb-brand));
+    box-shadow: 0 0 0 2px hsl(var(--sb-brand) / 0.25);
+  }
+
+  .sb .sb-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .sb .sb-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 42px;
+    padding: 0 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(62, 207, 142, 0.3);
+    background: hsl(var(--sb-brand-bg));
+    color: hsl(var(--sb-on-brand));
+    transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  }
+
+  .sb .sb-btn-primary:hover {
+    background: rgba(0, 98, 57, 0.9);
+  }
+
+  .sb .sb-btn-primary:active {
+    background: rgba(0, 98, 57, 0.85);
+  }
+
+  .sb .sb-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .sb .sb-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 42px;
+    padding: 0 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(var(--sb-border-2));
+    background: hsl(var(--sb-alt));
+    color: hsl(var(--sb-fg));
+    transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  }
+
+  .sb .sb-btn-secondary:hover {
+    background: hsl(var(--sb-fg) / 0.04);
+    border-color: hsl(var(--sb-border-2));
+  }
+
+  .sb .sb-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 @layer utilities {
   @keyframes sb-fade-in {
     from {
