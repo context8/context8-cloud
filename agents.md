@@ -219,3 +219,6 @@ tailwindcss + shadcn
 28. 前端路由基于 TanStack Start 文件路由：路由文件位于 `src/routes/`，`src/routeTree.gen.ts` 为生成文件且必须提交。
 29. SSR 策略：公开页面可 SSR；需登录的页面统一 `ssr: false`，避免把用户态塞进服务端渲染。
 30. Vercel 部署使用 `nitro/vite` 产物：`bun run build` 生成 `.output/`；本地预览用 `node .output/server/index.mjs`。
+31. 本地开发流程：`bun install --frozen-lockfile` 后复制 `.env.local.example` 为 `.env.local`，再运行 `bun run dev`。
+32. 本地预览流程：`bun run build` 后运行 `bun run start`，与 `node .output/server/index.mjs` 等价。
+33. 需要模拟 Vercel 构建时使用 `VERCEL=1 bun run build` 触发 Nitro 的 `preset: vercel`。
