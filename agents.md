@@ -180,7 +180,36 @@
 ## 自动化测试
 
 触发条件：针对端对端浏览器访问测试：用户要求进行测试或你觉得需要进行页面测试：
-你对所有页面都自动化测试，这样不用我人肉一个一个去测试了.,我们有 chrome mcp，你调用它去全部帮我测试每个链接就行了。主要目的是检查页面所有内容是否渲染成功，是否存在预期外的白屏或者数据丢失，是否有出错情况。
+你对所有页面都自动化测试，这样不用我人肉一个一个去测试了。默认优先使用 `agent-browser`（https://github.com/vercel-labs/agent-browser）来代替 chrome dev mcp；只有在 `agent-browser` 不可用/能力缺失时才允许回退到 chrome dev mcp。
+
+### 安装/前置（缺一个就别跑）
+
+- 安装：`npm install -g agent-browser`
+- 安装 Chromium：`agent-browser install`
+- Linux 依赖：`agent-browser install --with-deps`
+
+### 标准页面检查流程（每个 URL 都必须跑一遍）
+
+1. 打开页面：`agent-browser open <url>`
+2. 等待稳定：`agent-browser wait --load networkidle`（必要时追加 `wait --text "..."` / `wait --url "**/path"` / `wait --fn "<js>"`）
+3. 抓 JS 异常：`agent-browser errors`（非空 = 失败）
+4. 抓控制台：`agent-browser console`（出现 error 级别 = 失败；warn 记录但不必然失败，按任务要求）
+5. 验证渲染/关键元素：`agent-browser snapshot -i -c --json`
+   - 必须在 snapshot 里确认关键文案/按钮/输入框/导航存在；缺失视为“白屏/数据丢失/渲染失败”
+   - 交互必须优先使用 snapshot 的 `[ref=eN]`：例如 `agent-browser click @e2`、`agent-browser fill @e3 "..."`（不要上来就写脆弱 CSS selector）
+6. 留证据：`agent-browser screenshot <path> --full`（每页至少 1 张；失败页额外截图）
+7. 需要根因时才开：`agent-browser trace start <path>` → 复现 → `agent-browser trace stop <path>`
+
+### 登录态/多用户（需要时用，别瞎折腾）
+
+- 复用登录态：`agent-browser --profile <dir> open <url>`（不同项目/账号用不同 profile 路径隔离）
+- 并发隔离：`agent-browser --session <name> open <url>`（避免互相污染）
+- 能绕过 UI 登录就绕过：`agent-browser open <origin> --headers '{"Authorization":"Bearer <token>"}'`（headers 只作用于该 origin，别担心泄漏）
+
+### 回退策略（写死，别争论）
+
+- 触发条件：`agent-browser` 不存在/无法安装、关键能力缺失（无法抓 errors/console/snapshot/截图 等）、或必须使用现成 MCP 工具链
+- 回退行为：改用 chrome dev mcp，但仍必须执行同一套验收信号：errors + console + screenshot（必要 trace）
 
 tailwindcss + shadcn
 
@@ -222,3 +251,4 @@ tailwindcss + shadcn
 31. 本地开发流程：`bun install --frozen-lockfile` 后复制 `.env.local.example` 为 `.env.local`，再运行 `bun run dev`。
 32. 本地预览流程：`bun run build` 后运行 `bun run start`，与 `node .output/server/index.mjs` 等价。
 33. 需要模拟 Vercel 构建时使用 `VERCEL=1 bun run build` 触发 Nitro 的 `preset: vercel`。
+34. E2E 浏览器自动化测试默认工具为 `agent-browser`（snapshot refs `@eN` 优先，必须检查 `errors`/`console` 并留 `screenshot` 证据；需要复用/隔离用 `--profile`/`--session`；仅当 `agent-browser` 不可用或能力缺失时回退到 chrome dev mcp）。
