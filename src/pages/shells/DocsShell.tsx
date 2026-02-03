@@ -19,7 +19,7 @@ export function DocsShell({
   children,
 }: {
   title?: string;
-  navItems: DocsNavItem[];
+  navItems: ReadonlyArray<DocsNavItem>;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -146,4 +146,3 @@ export function DocsShell({
     </div>
   );
 }
-

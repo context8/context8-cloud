@@ -1,18 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AppShell } from '@/components/AppShell';
-import { Learn } from '@/pages/Learn';
-import { useTheme } from '@/state/theme';
+import { Learn, LEARN_NAV_ITEMS } from '@/pages/Learn';
+import { DocsShell } from '@/pages/shells/DocsShell';
 
 export const Route = createFileRoute('/learn')({
   component: LearnRoute,
 });
 
 function LearnRoute() {
-  const { theme } = useTheme();
   return (
-    <AppShell>
-      <Learn theme={theme} />
+    <AppShell hideChrome>
+      <DocsShell title="Learn" navItems={LEARN_NAV_ITEMS}>
+        <Learn />
+      </DocsShell>
     </AppShell>
   );
 }
-
