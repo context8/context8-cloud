@@ -7,7 +7,7 @@
 Minimal UI for Context8 Cloud: email verification login → create API key → save/search solutions.
 
 ## Setup
-1) `npm ci`
+1) `bun install --frozen-lockfile`
 2) `.env.local`:
 ```
 VITE_API_BASE=http://localhost:8000   # or your deployment base URL
@@ -15,7 +15,7 @@ VITE_API_BASE=http://localhost:8000   # or your deployment base URL
 
 ## Run
 ```
-npm run dev
+bun run dev
 ```
 Open `http://localhost:5173` in your browser.
 

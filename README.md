@@ -7,9 +7,9 @@ The backend service is **not** included in this repo. You must provide a compati
 ## Quickstart
 ```bash
 cd frontend
-npm ci
+bun install --frozen-lockfile
 cp .env.local.example .env.local
-npm run dev
+bun run dev
 ```
 
 Open `http://localhost:5173`.
