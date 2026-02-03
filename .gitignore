@@ -5,4 +5,8 @@ agents.md
 .venv/
 node_modules/
 dist/
+.output/
+.tanstack/
+.vinxi/
+.vercel/
 /.idea/
