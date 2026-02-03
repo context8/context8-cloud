@@ -271,7 +271,7 @@ export function Learn() {
             <button
               type="button"
               className="mt-4 inline-flex items-center gap-2 text-sm text-brand-link hover:underline"
-              onClick={() => navigate({ to: '/dashboard/solutions' })}
+              onClick={() => navigate({ to: '/dashboard/solutions', search: {} })}
             >
               Open dashboard <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -315,4 +315,3 @@ export function Learn() {
     </>
   );
 }
-

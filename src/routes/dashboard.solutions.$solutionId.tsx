@@ -55,7 +55,7 @@ function SolutionDetailRoute() {
   }, [auth, error, solutionId]);
 
   const close = () => {
-    navigate({ to: '/dashboard/solutions' });
+    navigate({ to: '/dashboard/solutions', search: {} });
   };
 
   return (

@@ -49,6 +49,7 @@ export const Layout: React.FC<LayoutProps> = ({
               <ChevronDown size={14} className={isDark ? 'text-slate-500' : 'text-emerald-300'} />
               <Link
                 to="/dashboard/solutions"
+                search={{}}
                 className={`ml-2 transition-colors ${isDashboard ? (isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium') : (isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600')}`}
                 onClick={(e) => e.stopPropagation()}
               >

@@ -174,7 +174,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
 
   const handleView = useCallback(
     (solution: Solution) => {
-      navigate({ to: '/dashboard/solutions/$solutionId', params: { solutionId: solution.id } });
+      navigate({ to: '/dashboard/solutions/$solutionId', params: { solutionId: solution.id }, search: {} });
     },
     [navigate]
   );

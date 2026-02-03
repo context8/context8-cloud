@@ -44,6 +44,28 @@ const groups: Array<{ title: string; links: FooterLink[] }> = [
 
 function FooterHref({ link }: { link: FooterLink }) {
   if (link.kind === 'internal') {
+    if (link.to === '/dashboard/solutions') {
+      return (
+        <Link
+          to="/dashboard/solutions"
+          search={{}}
+          className="text-sm transition-colors text-foreground-light hover:text-foreground"
+        >
+          {link.label}
+        </Link>
+      );
+    }
+    if (link.to === '/dashboard/search') {
+      return (
+        <Link
+          to="/dashboard/search"
+          search={{}}
+          className="text-sm transition-colors text-foreground-light hover:text-foreground"
+        >
+          {link.label}
+        </Link>
+      );
+    }
     return (
       <Link to={link.to} className="text-sm transition-colors text-foreground-light hover:text-foreground">
         {link.label}

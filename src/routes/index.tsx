@@ -18,7 +18,7 @@ function IndexRoute() {
     if (!solutionId) return;
 
     if (session?.token) {
-      navigate({ to: '/dashboard/solutions/$solutionId', params: { solutionId } });
+      navigate({ to: '/dashboard/solutions/$solutionId', params: { solutionId }, search: {} });
       return;
     }
 

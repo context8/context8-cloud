@@ -25,21 +25,42 @@ function SidebarItem({
   active: boolean;
 }) {
   const Icon = item.icon;
+  const className = [
+    'group relative flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+    active
+      ? 'bg-[hsl(var(--dash-sidebar-accent))] text-foreground'
+      : 'text-foreground-light hover:bg-[hsl(var(--dash-sidebar-accent))] hover:text-foreground',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--dash-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--dash-sidebar-bg))]',
+  ].join(' ');
+
+  const tooltip = (
+    <span className="pointer-events-none absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-default bg-surface px-2 py-1 text-xs text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+      {item.label}
+    </span>
+  );
+
+  if (item.to === '/dashboard/solutions') {
+    return (
+      <Link to="/dashboard/solutions" search={{}} aria-label={item.label} className={className} title={item.label}>
+        <Icon className="h-4 w-4" aria-hidden="true" />
+        {tooltip}
+      </Link>
+    );
+  }
+
+  if (item.to === '/dashboard/search') {
+    return (
+      <Link to="/dashboard/search" search={{}} aria-label={item.label} className={className} title={item.label}>
+        <Icon className="h-4 w-4" aria-hidden="true" />
+        {tooltip}
+      </Link>
+    );
+  }
+
   return (
-    <Link
-      to={item.to}
-      aria-label={item.label}
-      className={[
-        'group relative flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-        active ? 'bg-[hsl(var(--dash-sidebar-accent))] text-foreground' : 'text-foreground-light hover:bg-[hsl(var(--dash-sidebar-accent))] hover:text-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--dash-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--dash-sidebar-bg))]',
-      ].join(' ')}
-      title={item.label}
-    >
+    <Link to="/dashboard/apikeys" aria-label={item.label} className={className} title={item.label}>
       <Icon className="h-4 w-4" aria-hidden="true" />
-      <span className="pointer-events-none absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-default bg-surface px-2 py-1 text-xs text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-        {item.label}
-      </span>
+      {tooltip}
     </Link>
   );
 }
@@ -65,7 +86,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <header className="h-14 border-b border-default bg-surface">
         <div className="mx-auto flex h-14 w-full items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Link to="/dashboard/solutions" className="flex items-center gap-2" aria-label="Dashboard Home">
+            <Link to="/dashboard/solutions" search={{}} className="flex items-center gap-2" aria-label="Dashboard Home">
               <img alt="Context8 Logo" src="/logo.png" className="h-[26px] w-[26px] rounded" />
             </Link>
 
@@ -93,7 +114,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-3">
             <Link
-              to="/dashboard/solutions?create=1"
+              to="/dashboard/solutions"
+              search={{ create: '1' }}
               className="inline-flex h-[26px] items-center justify-center gap-2 rounded-full border border-strong bg-alternative px-2.5 py-1 text-xs text-foreground hover:bg-[hsl(var(--dash-fg)/0.04)]"
             >
               New solution
@@ -164,4 +186,3 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

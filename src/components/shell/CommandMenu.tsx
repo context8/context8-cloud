@@ -5,7 +5,7 @@ import { Command, FileText, Key, Search, Home, BookOpen } from 'lucide-react';
 type CommandItem = {
   id: string;
   label: string;
-  to: string;
+  to: '/' | '/learn' | '/dashboard/solutions' | '/dashboard/search' | '/dashboard/apikeys';
   icon: React.ComponentType<{ className?: string }>;
 };
 
@@ -64,9 +64,9 @@ export function CommandMenu({
     (query?: string) => {
       const q = (query ?? '').trim();
       if (q) {
-        navigate({ to: `/dashboard/search?q=${encodeURIComponent(q)}` });
+        navigate({ to: '/dashboard/search', search: { q } });
       } else {
-        navigate({ to: '/dashboard/search' });
+        navigate({ to: '/dashboard/search', search: {} });
       }
       onOpenChange(false);
       setValue('');
@@ -128,18 +128,34 @@ export function CommandMenu({
                   <span className="text-xs text-foreground-light">↵</span>
                 </button>
               ) : (
-                <Link
-                  key={item.id}
-                  to={item.to}
-                  className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm text-foreground hover:bg-[hsl(var(--dash-fg)/0.04)] hover:border-default"
-                  onClick={() => {
-                    onOpenChange(false);
-                    setValue('');
-                  }}
-                >
-                  <Icon className="h-4 w-4 text-foreground-light" aria-hidden="true" />
-                  {item.label}
-                </Link>
+                item.to === '/dashboard/solutions' ? (
+                  <Link
+                    key={item.id}
+                    to="/dashboard/solutions"
+                    search={{}}
+                    className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm text-foreground hover:bg-[hsl(var(--dash-fg)/0.04)] hover:border-default"
+                    onClick={() => {
+                      onOpenChange(false);
+                      setValue('');
+                    }}
+                  >
+                    <Icon className="h-4 w-4 text-foreground-light" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                ) : (
+                  <Link
+                    key={item.id}
+                    to={item.to}
+                    className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm text-foreground hover:bg-[hsl(var(--dash-fg)/0.04)] hover:border-default"
+                    onClick={() => {
+                      onOpenChange(false);
+                      setValue('');
+                    }}
+                  >
+                    <Icon className="h-4 w-4 text-foreground-light" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                )
               );
             })}
           </div>
@@ -148,4 +164,3 @@ export function CommandMenu({
     </div>
   );
 }
-

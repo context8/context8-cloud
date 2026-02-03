@@ -80,7 +80,7 @@ export const Login: React.FC = () => {
       }
 
       login(data.token, data.user?.email ?? email);
-      navigate({ to: '/dashboard/solutions' });
+      navigate({ to: '/dashboard/solutions', search: {} });
     } catch (err: any) {
       setError(err.message);
     } finally {

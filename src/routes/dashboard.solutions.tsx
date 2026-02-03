@@ -5,6 +5,10 @@ import { useSession } from '@/state/session';
 
 export const Route = createFileRoute('/dashboard/solutions')({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => {
+    const create = search.create === '1' ? '1' : undefined;
+    return create ? { create } : {};
+  },
   component: SolutionsRoute,
 });
 
@@ -19,4 +23,3 @@ function SolutionsRoute() {
     </>
   );
 }
-
