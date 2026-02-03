@@ -250,13 +250,13 @@ tailwindcss + shadcn
 16. Context8 CLI 远端同步：`remote-config` 将 URL/API Key 写入 `~/.context8/config.json`（优先级 flags > env > 文件）；`push-remote` 支持 dry-run/force/concurrency，去重映射存于 `~/.context8/remote-sync.json`。
 17. Context8 检索实现为自建稀疏倒排索引（inverted_index + solution_stats）与稠密向量混排，无 SQLite FTS 虚表；空索引由 ensureSparseIndex 回填。
 18. Context8 前端（TanStack Start，repo root）使用 `VITE_API_BASE` 直连后端：邮箱验证码登录获取 JWT、创建 API Key、保存/搜索 solutions，请求带 Bearer 或 X-API-Key。
-19. 前端首页展示公共方案：未登录调用 `GET /solutions?publicOnly=true&limit=50` 获取公开 solutions，客户端搜索/排序仅基于这批数据；缺失 views/upvotes 时 Popular/Trending 退化为按 createdAt；卡片展开仅用于浏览，保存或导航统一引导到 Dashboard。
+19. 首页 `/` 为纯 marketing landing：不再请求 `GET /solutions?publicOnly=true`，不在首页展示/排序 public solutions；数据浏览与操作统一在 `/dashboard/*`。
 20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 主题定制后嵌入到 `src/pages/DemoChat.tsx`。
 21. 前端主题由 App 统一管理并持久化 `localStorage`，Layout 提供全局灯光切换，Home/Dashboard/DemoChat 统一按 `ThemeMode` 渲染。
 22. 前端显示文案统一为英文，避免混入非英文可见文本。
 23. Demo Chat 前端不直连 OpenRouter，统一调用后端 `/llm/chat` 代理；OpenRouter 密钥只保存在后端环境变量中。
 24. Demo Chat 支持 Deep Search/Deep Thinking 开关：Deep Search 提高检索条数，Deep Thinking 追加更深入诊断指令。
-25. Demo 页面在 `Layout` 中启用 `hideChrome` 全屏渲染，不显示全站 header/footer/辅助导航与匹配列表区。
+25. Demo 页面使用 `AppShell hideChrome` + `MarketingShell`：复用 Landing Navbar/Footer（`.sb` 作用域），不显示 `Layout` 的全站 chrome。
 26. API Key 删除需要输入确认短语并二次确认，且必须提示 public solutions 不会被删除，如需删除需先切为 private。
 27. 前端包管理统一使用 bun：安装用 `bun install --frozen-lockfile`；仓库只提交 repo root 的 `bun.lock`，不提交 package-lock/yarn/pnpm 锁文件。
 28. 前端路由基于 TanStack Start 文件路由：路由文件位于 `src/routes/`，`src/routeTree.gen.ts` 为生成文件且必须提交。
@@ -276,4 +276,4 @@ tailwindcss + shadcn
 42. Hero 输入框统一 x.ai 结构：外层 `bg-gradient-to-tr p-px from-primary/5 to-primary/20 rounded-3xl`，内层 textarea `h-[120px] rounded-3xl pl-4 pr-16 py-5 resize-none`，右下角放圆形 submit 按钮。
 43. 主题切换 `<html>` 为单一真相：ThemeProvider 必须同步 `.dark` class + `data-theme` + `color-scheme`；页面/组件禁止再写 `theme === 'dark' ? ... : ...` 的大段分支，改用 token。
 44. 反抄袭底线：不直接复制第三方网站的图片/图标/大段 SVG path；允许复刻结构与风格，但资产必须自制或来自本项目许可资源。
-45. Landing 页面如需复刻外部站点风格：样式必须作用域隔离（例如仅在 `.sb` wrapper 下生效），组件/文件命名保持中性（不要出现外部品牌名）。
+45. 非 Dashboard 页面如需复刻外部站点风格：样式必须作用域隔离（例如仅在 `.sb` wrapper 下生效），组件/文件命名保持中性（不要出现外部品牌名）。
