@@ -1,11 +1,11 @@
-# Dashboard UI evidence (Supabase reference)
+# Dashboard UI evidence (reference dashboard)
 
-This repo **does not copy Supabase assets**. This note records **measured values** (computed styles + CSS tokens) used to reproduce layout and visual rhythm.
+This repo **does not copy third-party assets**. This note records **measured values** (computed styles + CSS tokens) used to reproduce layout and visual rhythm.
 
 Evidence capture:
 - Browser automation: `agent-browser` via CDP `9222`
 - Viewport: `1440x900`
-- Reference URL (logged-in): `https://supabase.com/dashboard/project/<project-id>`
+- Reference URL (logged-in): `https://<reference-site>/dashboard/project/<project-id>`
 - Screenshots (local only, not committed):
   - `/tmp/sb-project-ctx8-evidence-light.png`
   - `/tmp/sb-project-ctx8-evidence-dark.png`
@@ -72,4 +72,3 @@ Dark (via `prefers-color-scheme: dark`):
   - `background-color: rgb(36, 36, 36)`
   - `border: 1px solid rgb(54, 54, 54)`
   - `color: rgb(250, 250, 250)`
-
