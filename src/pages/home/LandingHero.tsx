@@ -20,7 +20,7 @@ export function LandingHero() {
 
   return (
     <div className="relative -mt-[65px]">
-      <div className="sm:py-18 container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 pt-8 pb-10 md:pt-16 overflow-hidden">
+      <div className="sm:py-[4.5rem] container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 pt-8 pb-10 md:pt-16 overflow-hidden">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"

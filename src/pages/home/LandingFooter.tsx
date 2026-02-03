@@ -72,7 +72,7 @@ export function LandingFooter() {
       </h2>
 
       <div className="w-full !py-0">
-        <div className="sm:py-18 container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 grid grid-cols-2 md:flex items-center justify-between text-foreground md:justify-center gap-8 md:gap-16 xl:gap-28 !py-6 md:!py-10 text-sm">
+        <div className="sm:py-[4.5rem] container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 grid grid-cols-2 md:flex items-center justify-between text-foreground md:justify-center gap-8 md:gap-16 xl:gap-28 !py-6 md:!py-10 text-sm">
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
             <span>We protect your data.</span>
             <a className="text-brand-link hover:underline" href="/learn">
@@ -95,7 +95,7 @@ export function LandingFooter() {
         <div className="w-full h-px bg-gradient-to-r from-transparent via-[hsl(var(--sb-border))] to-transparent" />
       </div>
 
-      <div className="sm:py-18 container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 py-8 bg-[hsl(var(--sb-bg))]">
+      <div className="sm:py-[4.5rem] container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 py-8 bg-[hsl(var(--sb-bg))]">
         <div className="xl:grid xl:grid-cols-7 xl:gap-4">
           <div className="space-y-8 xl:col-span-2">
             <Link to="/" className="w-40 inline-flex items-center gap-2" aria-label="Context8 Home">
@@ -126,7 +126,7 @@ export function LandingFooter() {
           <div className="mt-10 grid grid-cols-2 gap-8 xl:col-span-5 xl:mt-0 sm:grid-cols-4">
             {groups.map((group) => (
               <div key={group.title}>
-                <h6 className="text-foreground overwrite text-base">{group.title}</h6>
+                <h6 className="text-foreground text-base">{group.title}</h6>
                 <ul className="mt-4 space-y-2">
                   {group.links.map((link) => (
                     <li key={link.label}>
