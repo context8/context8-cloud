@@ -14,10 +14,7 @@ export default defineConfig({
     tsConfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart(),
-    nitro({
-      preset: process.env.VERCEL ? 'vercel' : 'node-server',
-    }),
+    nitro(),
     react(),
   ],
 });
-

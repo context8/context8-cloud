@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
@@ -6,21 +7,11 @@ import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
 import { ErrorTypeBadge } from '../components/Common/ErrorTypeBadge';
 import { TagCloud } from '../components/Common/TagCloud';
 import { Modal } from '../components/Common/Modal';
-import { SearchResult, ThemeMode, View } from '../types';
+import { SearchResult, Solution } from '../types';
 import { AlertTriangle, Database, Terminal, ChevronDown } from 'lucide-react';
 import { solutionsService } from '../services/api/solutions';
-
-type SessionState = {
-  session: { token: string; email: string } | null;
-  apiKey: string | null;
-};
-
-type Props = {
-  sessionState: SessionState;
-  theme: ThemeMode;
-  onViewChange: (view: View) => void;
-  onToggleTheme: () => void;
-};
+import { useSession } from '@/state/session';
+import { useTheme } from '@/state/theme';
 
 type ChatMessage = {
   id: string;
@@ -43,7 +34,10 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, onToggleTheme }) => {
+export const DemoChat: React.FC = () => {
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
+  const { session, apiKey } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [resetToken, setResetToken] = useState(0);
@@ -54,13 +48,13 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
   const [deepSearchEnabled, setDeepSearchEnabled] = useState(true);
   const [deepThinkingEnabled, setDeepThinkingEnabled] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [selectedSolution, setSelectedSolution] = useState<SearchResult | null>(null);
+  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const auth = useMemo(() => ({
-    token: sessionState.session?.token,
-    apiKey: sessionState.apiKey,
-  }), [sessionState.session?.token, sessionState.apiKey]);
+    token: session?.token,
+    apiKey: apiKey ?? undefined,
+  }), [session?.token, apiKey]);
 
   const authLabel = useMemo(() => {
     if (auth.apiKey) return `X-API-Key ${auth.apiKey.slice(0, 6)}...`;
@@ -102,7 +96,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
 
   const handleOpenSolution = async (solutionId: string) => {
     setIsDetailLoading(true);
-    setSelectedSolution({ id: solutionId } as SearchResult);
+    setSelectedSolution({ id: solutionId } as Solution);
     try {
       const hasAuth = Boolean(auth.apiKey || auth.token);
       const detail = hasAuth
@@ -200,22 +194,22 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
     <div className={`h-screen w-full flex flex-col ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
       <header className={`flex-shrink-0 h-14 flex items-center justify-between px-4 sm:px-6 border-b backdrop-blur-md ${isDark ? 'bg-[#0a0a0a]/80 border-slate-800' : 'bg-white/80 border-emerald-100'}`}>
         <div className="flex items-center gap-4">
-          <div
+          <Link
+            to="/"
             className={`flex items-center gap-2 rounded-md px-2 py-1 cursor-pointer transition-colors shadow-sm ${isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500' : 'bg-white border border-emerald-100 hover:border-emerald-300'}`}
-            onClick={() => onViewChange('home')}
           >
             <div className={`rounded-sm p-0.5 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
               <img src="/logo.png" alt="Context8 logo" className="h-4 w-4" />
             </div>
             <span className={`font-semibold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Context8</span>
-          </div>
+          </Link>
 
           <div className={`hidden md:flex items-center gap-2 rounded-md px-3 py-1.5 text-sm border border-transparent ${isDark ? 'bg-slate-900/60' : 'bg-emerald-50/60'}`}>
             <span className={isDark ? 'text-slate-300' : 'text-emerald-700'}>Personal</span>
             <ChevronDown size={14} className={isDark ? 'text-slate-500' : 'text-emerald-300'} />
             <button
               className={`ml-2 transition-colors ${isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600'}`}
-              onClick={() => onViewChange('dashboard')}
+              onClick={() => navigate({ to: '/dashboard/solutions' })}
             >
               Dashboard
             </button>
@@ -227,7 +221,7 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
 
         <div className="flex items-center gap-3">
           <button
-            onClick={onToggleTheme}
+            onClick={toggleTheme}
             className={`p-2 rounded-full transition-colors border ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'}`}
             title="Toggle Theme"
           >
@@ -501,19 +495,26 @@ export const DemoChat: React.FC<Props> = ({ sessionState, theme, onViewChange, o
           <span>© 2025, Context8 local knowledge</span>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => onViewChange('home')}
+              onClick={() => navigate({ to: '/' })}
               className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
             >
               Home
             </button>
             <button
-              onClick={() => onViewChange('dashboard')}
+              onClick={() => navigate({ to: '/dashboard/solutions' })}
               className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
             >
               Dashboard
             </button>
-            <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>About</a>
-            <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Contact</a>
+            <Link to="/learn" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>
+              About
+            </Link>
+            <a
+              href="mailto:contact@context8.cloud"
+              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+            >
+              Contact
+            </a>
           </div>
         </div>
       </footer>

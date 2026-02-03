@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles } from 'lucide-react';
 import { SolutionCard } from '@/components/Dashboard/SolutionCard';
 import { SolutionListItem } from '@/components/Dashboard/SolutionListItem';
 import { SolutionCardSkeleton } from '@/components/Dashboard/SolutionCardSkeleton';
@@ -8,9 +9,7 @@ import { Button } from '@/components/Common/Button';
 import { Modal } from '@/components/Common/Modal';
 import { SegmentedControl } from '@/components/Common/SegmentedControl';
 import { Dropdown } from '@/components/Common/Dropdown';
-import { ErrorTypeBadge, getErrorTypeOptions, normalizeErrorType } from '@/components/Common/ErrorTypeBadge';
-import { TagCloud } from '@/components/Common/TagCloud';
-import { MarkdownRenderer } from '@/components/Common/MarkdownRenderer';
+import { getErrorTypeOptions, normalizeErrorType } from '@/components/Common/ErrorTypeBadge';
 import { Pagination } from '@/components/Common/Pagination';
 import { useSolutions } from '@/hooks/useSolutions';
 import { useToast } from '@/hooks/useToast';
@@ -28,8 +27,8 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   apiKey,
   theme,
 }) => {
+  const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
   const [publicFilter, setPublicFilter] = useState<'all' | 'public' | 'private'>('all');
   const [errorTypeFilter, setErrorTypeFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('recent');
@@ -40,7 +39,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   const isDark = theme === 'dark';
 
   const authOptions = useMemo(() => {
-    return { token, apiKey };
+    return { token: token ?? undefined, apiKey: apiKey ?? undefined };
   }, [token, apiKey]);
 
   const {
@@ -54,14 +53,10 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     createSolution,
     deleteSolution,
     togglePublic,
-    getSolution,
     searchSolutions,
     clearSearch,
-    voteSolution,
-    clearVote,
   } = useSolutions(authOptions);
   const { toasts, success, error, dismiss } = useToast();
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
   const isSearchMode = debouncedQuery.length > 0;
   const searchHasVisibility = searchResults
     ? searchResults.every((item) => typeof item.isPublic === 'boolean')
@@ -177,63 +172,12 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
     }
   };
 
-  const getSolutionIdFromUrl = useCallback(() => {
-    return new URLSearchParams(window.location.search).get('solutionId');
-  }, []);
-
-  const updateSolutionIdInUrl = useCallback((solutionId: string | null, replace = false) => {
-    const url = new URL(window.location.href);
-    if (solutionId) {
-      url.searchParams.set('solutionId', solutionId);
-    } else {
-      url.searchParams.delete('solutionId');
-    }
-    if (replace) {
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      window.history.pushState({}, '', url.toString());
-    }
-  }, []);
-
-  const handleView = useCallback(async (solution: Solution, replace = false) => {
-    setSelectedSolution(solution);
-    setIsDetailLoading(true);
-    if (solution.id) {
-      updateSolutionIdInUrl(solution.id, replace);
-    }
-    try {
-      const detail = await getSolution(solution.id);
-      setSelectedSolution(detail);
-    } catch (err) {
-      error(err instanceof Error ? err.message : 'Failed to load solution details');
-    } finally {
-      setIsDetailLoading(false);
-    }
-  }, [getSolution, updateSolutionIdInUrl, error]);
-
-  const handleCloseDetail = useCallback(() => {
-    setSelectedSolution(null);
-    updateSolutionIdInUrl(null, false);
-  }, [updateSolutionIdInUrl]);
-
-  const handleVote = useCallback(async (value: 1 | -1) => {
-    if (!selectedSolution) return;
-    try {
-      const current = selectedSolution.myVote ?? null;
-      const resp = current === value
-        ? await clearVote(selectedSolution.id)
-        : await voteSolution(selectedSolution.id, value);
-      setSelectedSolution((prev) => prev ? ({
-        ...prev,
-        upvotes: resp.upvotes,
-        downvotes: resp.downvotes,
-        voteScore: resp.voteScore,
-        myVote: resp.myVote ?? null,
-      }) : prev);
-    } catch (err) {
-      error(err instanceof Error ? err.message : 'Failed to vote');
-    }
-  }, [selectedSolution, voteSolution, clearVote, error]);
+  const handleView = useCallback(
+    (solution: Solution) => {
+      navigate({ to: '/dashboard/solutions/$solutionId', params: { solutionId: solution.id } });
+    },
+    [navigate]
+  );
 
   const handleClearFilters = useCallback(() => {
     setPublicFilter('all');
@@ -249,26 +193,6 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   ];
 
   const hasActiveFilters = publicFilter !== 'all' || errorTypeFilter || searchQuery;
-
-  useEffect(() => {
-    const solutionId = getSolutionIdFromUrl();
-    if (solutionId) {
-      handleView({ id: solutionId } as Solution, true);
-    }
-  }, [getSolutionIdFromUrl, handleView]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const solutionId = getSolutionIdFromUrl();
-      if (solutionId) {
-        handleView({ id: solutionId } as Solution, true);
-      } else {
-        setSelectedSolution(null);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [getSolutionIdFromUrl, handleView]);
 
   return (
     <div className="space-y-6">
@@ -502,116 +426,6 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
           onCancel={() => setShowCreateModal(false)}
           theme={theme}
         />
-      </Modal>
-
-      {/* View Modal */}
-      <Modal
-        isOpen={!!selectedSolution}
-        onClose={handleCloseDetail}
-        title={selectedSolution?.title || 'Solution Details'}
-        size="xl"
-      >
-        {selectedSolution && (
-          <div className="space-y-6">
-            {/* Header with badges */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <ErrorTypeBadge type={selectedSolution.errorType} size="md" theme={theme} />
-                {selectedSolution.tags && selectedSolution.tags.length > 0 && (
-                  <TagCloud tags={selectedSolution.tags} maxVisible={5} size="sm" theme={theme} />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleVote(1)}
-                  className={`
-                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border
-                    ${isDark
-                      ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200'
-                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-                    }
-                    ${selectedSolution.myVote === 1 ? (isDark ? 'border-emerald-500/50 text-emerald-400' : 'border-emerald-400 text-emerald-700') : ''}
-                  `}
-                  title="Upvote"
-                >
-                  <ThumbsUp size={16} />
-                  <span>{selectedSolution.upvotes ?? 0}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleVote(-1)}
-                  className={`
-                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border
-                    ${isDark
-                      ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200'
-                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-                    }
-                    ${selectedSolution.myVote === -1 ? (isDark ? 'border-red-500/50 text-red-400' : 'border-red-300 text-red-600') : ''}
-                  `}
-                  title="Downvote"
-                >
-                  <ThumbsDown size={16} />
-                  <span>{selectedSolution.downvotes ?? 0}</span>
-                </button>
-              </div>
-            </div>
-
-            {isDetailLoading && (
-              <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Loading full details...
-              </div>
-            )}
-
-            {/* Error Message */}
-            <div>
-              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Error Message
-              </h4>
-              <div className={`p-3 rounded-lg font-mono text-sm ${isDark ? 'bg-slate-800 text-red-300' : 'bg-red-50 text-red-700'}`}>
-                {selectedSolution.errorMessage || 'No error message'}
-              </div>
-            </div>
-
-            {/* Context */}
-            {selectedSolution.context && (
-              <div>
-                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Context
-                </h4>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
-                  {selectedSolution.context}
-                </p>
-              </div>
-            )}
-
-            {/* Root Cause */}
-            {selectedSolution.rootCause && (
-              <div>
-                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Root Cause
-                </h4>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
-                  {selectedSolution.rootCause}
-                </p>
-              </div>
-            )}
-
-            {/* Solution */}
-            <div>
-              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                Solution
-              </h4>
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-emerald-50/50'}`}>
-                <MarkdownRenderer
-                  content={selectedSolution.solution || 'No solution provided'}
-                  theme={theme}
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </Modal>
     </div>
   );

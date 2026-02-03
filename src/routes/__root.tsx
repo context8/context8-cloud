@@ -8,9 +8,13 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
+  useNavigate,
 } from '@tanstack/react-router';
 
 import appCss from '@/styles/app.css?url';
+import { SessionProvider, useSession } from '@/state/session';
+import { ThemeProvider } from '@/state/theme';
+import { setUnauthorizedHandler } from '@/services/api/client';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -58,7 +62,12 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <ThemeProvider>
+        <SessionProvider>
+          <UnauthorizedHandler />
+          <Outlet />
+        </SessionProvider>
+      </ThemeProvider>
     </RootDocument>
   );
 }
@@ -79,3 +88,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   );
 }
 
+function UnauthorizedHandler() {
+  const navigate = useNavigate();
+  const { logout } = useSession();
+
+  React.useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+      navigate({ to: '/login' });
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout, navigate]);
+
+  return null;
+}

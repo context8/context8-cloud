@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { API_BASE } from '../constants';
 import { Mail, ArrowRight, Check, AlertCircle, Clock, Rocket } from 'lucide-react';
+import { useSession } from '@/state/session';
 
-interface LoginProps {
-  onLoginSuccess: (token: string, user: { id: string; email: string }) => void;
-}
-
-export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+export const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const { login } = useSession();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -79,7 +79,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         throw new Error(data.detail || 'Invalid verification code');
       }
 
-      onLoginSuccess(data.token, data.user);
+      login(data.token, data.user?.email ?? email);
+      navigate({ to: '/dashboard/solutions' });
     } catch (err: any) {
       setError(err.message);
     } finally {

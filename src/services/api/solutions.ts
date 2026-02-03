@@ -109,7 +109,7 @@ export const solutionsService = {
   },
 
   async updatePublic(auth: AuthOptions, id: string, isPublic: boolean): Promise<Solution> {
-    const response = await request(
+    const response = await request<Solution>(
       `/solutions/${id}`,
       {
         method: 'PATCH',

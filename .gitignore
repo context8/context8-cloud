@@ -6,6 +6,7 @@ agents.md
 node_modules/
 dist/
 .output/
+.nitro/
 .tanstack/
 .vinxi/
 .vercel/

@@ -13,9 +13,13 @@ type AssistantResult = {
 };
 
 const authHeaders = (auth: Auth) => {
-  if (auth.apiKey) return { 'X-API-Key': auth.apiKey };
-  if (auth.token) return { Authorization: `Bearer ${auth.token}` };
-  return {};
+  const headers: Record<string, string> = {};
+  if (auth.apiKey) {
+    headers['X-API-Key'] = auth.apiKey;
+  } else if (auth.token) {
+    headers['Authorization'] = `Bearer ${auth.token}`;
+  }
+  return headers;
 };
 
 export const runOpenRouterAssistant = async ({
@@ -29,9 +33,13 @@ export const runOpenRouterAssistant = async ({
   limit?: number;
   signal?: AbortSignal;
 }): Promise<AssistantResult> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...authHeaders(auth),
+  };
   const res = await fetch(`${API_BASE}/llm/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders(auth) },
+    headers,
     body: JSON.stringify({ prompt, limit: limit ?? 5 }),
     signal,
   });
@@ -65,9 +73,13 @@ Assistant: ${aiResponse}
 
 Generate exactly 2 short follow-up questions (max 4 words each) that the user might ask next. Return only the questions, one per line, no numbering or explanation.`;
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...authHeaders(auth),
+    };
     const res = await fetch(`${API_BASE}/llm/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders(auth) },
+      headers,
       body: JSON.stringify({ prompt, limit: 0 }),
     });
 

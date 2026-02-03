@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ThemeMode, View } from '../types';
+import { useNavigate } from '@tanstack/react-router';
+import { ThemeMode } from '../types';
 import {
   Copy,
   Check,
@@ -14,7 +15,6 @@ import {
 } from 'lucide-react';
 
 type Props = {
-  onViewChange?: (view: View) => void;
   theme: ThemeMode;
 };
 
@@ -68,7 +68,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language = 'json', theme })
   );
 };
 
-export const Learn: React.FC<Props> = ({ onViewChange, theme }) => {
+export const Learn: React.FC<Props> = ({ theme }) => {
+  const navigate = useNavigate();
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<TabId>('cursor');
 
@@ -112,14 +113,14 @@ claude mcp add -e CONTEXT8_REMOTE_API_KEY=<your-api-key> context8 -- npx -y cont
       title: 'Dashboard',
       description: 'Manage your API keys and view your saved solutions',
       icon: LayoutDashboard,
-      action: () => onViewChange?.('dashboard'),
+      action: () => navigate({ to: '/dashboard/apikeys' }),
       buttonText: 'Go to Dashboard',
     },
     {
       title: 'Try Demo',
       description: 'Experience Context8 in action with our interactive demo',
       icon: MessageSquare,
-      action: () => onViewChange?.('demo'),
+      action: () => navigate({ to: '/demo' }),
       buttonText: 'Try Live Demo',
     },
     {
@@ -143,14 +144,14 @@ claude mcp add -e CONTEXT8_REMOTE_API_KEY=<your-api-key> context8 -- npx -y cont
         </p>
         <div className="flex gap-3">
           <button
-            onClick={() => onViewChange?.('dashboard')}
+            onClick={() => navigate({ to: '/dashboard/apikeys' })}
             className={`px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2 ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
           >
             <Key size={16} />
             Get API Key
           </button>
           <button
-            onClick={() => onViewChange?.('demo')}
+            onClick={() => navigate({ to: '/demo' })}
             className={`border px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2 ${isDark ? 'border-slate-700 text-emerald-300 hover:bg-slate-900' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}`}
           >
             Try Demo
@@ -183,7 +184,7 @@ claude mcp add -e CONTEXT8_REMOTE_API_KEY=<your-api-key> context8 -- npx -y cont
               Sign up for a free account and generate your API key from the dashboard. This key enables cloud sync and community features.
             </p>
             <button
-              onClick={() => onViewChange?.('login')}
+              onClick={() => navigate({ to: '/login' })}
               className={`text-sm font-medium transition-colors ${isDark ? 'text-emerald-300 hover:text-emerald-200' : 'text-emerald-600 hover:text-emerald-700'}`}
             >
               Sign up now <ArrowRight size={14} className="inline ml-1" />

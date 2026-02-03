@@ -1,20 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { API_BASE } from '../constants';
-import { Solution, ThemeMode, View } from '../types';
+import { Solution, ThemeMode } from '../types';
 import { Star, TrendingUp, Clock, FileText, Loader2, Twitter, Mail, Rocket } from 'lucide-react';
 import { FlipCounter } from '../components/FlipCounter';
 
 type Props = {
-  onViewChange?: (view: View) => void;
   theme: ThemeMode;
+  initialSolutions: Solution[];
+  initialError?: string | null;
 };
 
-export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
+export const Home: React.FC<Props> = ({ theme, initialSolutions, initialError }) => {
+  const navigate = useNavigate();
   const isDark = theme === 'dark';
   // State
-  const [solutions, setSolutions] = useState<Solution[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [solutions, setSolutions] = useState<Solution[]>(initialSolutions);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialError ?? null);
   const [activeTab, setActiveTab] = useState<'recent' | 'popular' | 'trending'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -40,12 +43,6 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchPublicSolutions(controller.signal);
-    return () => controller.abort(); // Cleanup: cancel pending requests
-  }, [fetchPublicSolutions]);
 
   // Retry helper
   const retry = () => fetchPublicSolutions();
@@ -153,13 +150,13 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
           </div>
           <div className={`flex items-center justify-center font-medium px-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>or</div>
           <button
-            onClick={() => onViewChange?.('login')}
+            onClick={() => navigate({ to: '/login' })}
             className={`px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
           >
             Sign in to Save Solutions
           </button>
           <button
-            onClick={() => onViewChange?.('demo')}
+            onClick={() => navigate({ to: '/demo' })}
             className={`border px-6 py-3 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap ${isDark ? 'border-slate-700 text-emerald-300 hover:bg-slate-900' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}`}
           >
             Try Demo Chat
@@ -283,7 +280,7 @@ export const Home: React.FC<Props> = ({ onViewChange, theme }) => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onViewChange?.('dashboard');
+                        navigate({ to: '/login' });
                       }}
                       className={`hover:underline text-sm font-medium transition-colors ${isDark ? 'text-emerald-300 hover:text-emerald-200' : 'text-emerald-600 hover:text-emerald-700'}`}
                     >

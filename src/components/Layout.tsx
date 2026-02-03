@@ -4,13 +4,12 @@ import {
   Plus,
   Bug
 } from 'lucide-react';
-import { ThemeMode, View } from '../types';
+import { Link, useRouterState } from '@tanstack/react-router';
+import { ThemeMode } from '../types';
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentView: View;
-  onViewChange: (view: View) => void;
-  user?: any;
+  user?: { email?: string; name?: string } | null;
   onLogout?: () => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
@@ -19,8 +18,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({
   children,
-  currentView,
-  onViewChange,
   user,
   onLogout,
   theme,
@@ -28,61 +25,65 @@ export const Layout: React.FC<LayoutProps> = ({
   hideChrome,
 }) => {
   const isDark = theme === 'dark';
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isDashboard = pathname.startsWith('/dashboard');
+  const isDemo = pathname.startsWith('/demo');
 
   return (
     <div className={`min-h-screen flex flex-col font-sans ${isDark ? 'bg-[#0a0a0a] text-slate-200' : 'bg-white text-slate-900'}`}>
       {!hideChrome && (
         <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between ${isDark ? 'bg-[#0a0a0a]/80 border-slate-800' : 'bg-white/80 border-emerald-100'}`}>
           <div className="flex items-center gap-4">
-            <div 
+            <Link
+              to="/"
               className={`flex items-center gap-2 rounded-md px-2 py-1 cursor-pointer transition-colors shadow-sm ${isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500' : 'bg-white border border-emerald-100 hover:border-emerald-300'}`}
-              onClick={() => onViewChange('home')}
             >
               <div className={`rounded-sm p-0.5 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
                 <img src="/logo.png" alt="Context8 logo" className="h-4 w-4" />
               </div>
               <span className={`font-semibold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Context8</span>
-            </div>
+            </Link>
 
             <div className={`hidden md:flex items-center gap-2 rounded-md px-3 py-1.5 text-sm border border-transparent cursor-pointer transition-colors ${isDark ? 'bg-slate-900/60 hover:border-slate-700' : 'bg-emerald-50/60 hover:border-emerald-100'}`}>
               <span className={isDark ? 'text-slate-300' : 'text-emerald-700'}>Personal</span>
               <ChevronDown size={14} className={isDark ? 'text-slate-500' : 'text-emerald-300'} />
-              <span 
-                className={`ml-2 transition-colors ${currentView === 'dashboard' ? (isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium') : (isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600')}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewChange('dashboard');
-                }}
+              <Link
+                to="/dashboard/solutions"
+                className={`ml-2 transition-colors ${isDashboard ? (isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium') : (isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600')}`}
+                onClick={(e) => e.stopPropagation()}
               >
                 Dashboard
-              </span>
-              <span 
-                className={`ml-2 transition-colors ${currentView === 'demo' ? (isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium') : (isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600')}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewChange('demo');
-                }}
+              </Link>
+              <Link
+                to="/demo"
+                className={`ml-2 transition-colors ${isDemo ? (isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium') : (isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600')}`}
+                onClick={(e) => e.stopPropagation()}
               >
                 Demo
-              </span>
+              </Link>
             </div>
           </div>
 
           <div className="flex items-center gap-4 text-sm">
             <nav className={`hidden md:flex items-center gap-6 font-medium ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-              <button
-                type="button"
-                onClick={() => onViewChange('learn')}
+              <Link
+                to="/learn"
                 className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
-              >Learn</button>
-              <button
-                type="button"
-                onClick={() => onViewChange('demo')}
+              >
+                Learn
+              </Link>
+              <Link
+                to="/demo"
                 className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
               >
                 Try Live
-              </button>
-              <a href="#" className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Install</a>
+              </Link>
+              <Link
+                to="/learn"
+                className={`transition-colors decoration-emerald-500/30 hover:underline underline-offset-4 ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
+              >
+                Install
+              </Link>
             </nav>
             <button
               onClick={onToggleTheme}
@@ -102,7 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({
             {user ? (
               <div className="flex items-center gap-3">
                 <span className={`text-sm truncate max-w-[150px] ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  {user.name || user.email || "Signed in"}
+                  {user.name || user.email || 'Signed in'}
                 </span>
                 <button
                   className={`border px-3 py-1.5 rounded-md text-sm transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800' : 'bg-white border-emerald-100 text-slate-700 hover:bg-emerald-50'}`}
@@ -112,13 +113,13 @@ export const Layout: React.FC<LayoutProps> = ({
                 </button>
               </div>
             ) : (
-              <button
+              <Link
+                to="/login"
                 className={`px-4 py-2 rounded-md font-medium text-sm flex items-center gap-1.5 transition-colors shadow-sm ${isDark ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'}`}
-                onClick={() => onViewChange('login')}
               >
                 <Plus size={16} />
                 Sign In
-              </button>
+              </Link>
             )}
           </div>
         </header>
