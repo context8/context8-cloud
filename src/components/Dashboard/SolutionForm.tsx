@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '../Common/Button';
 import { Toggle } from '../Common/Toggle';
+import { DashButton } from '@/components/dashboard-ui/DashButton';
 
 export interface SolutionFormData {
   title: string;
@@ -17,14 +17,12 @@ export interface SolutionFormProps {
   onSubmit: (data: SolutionFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
-  theme: 'light' | 'dark';
 }
 
 export const SolutionForm: React.FC<SolutionFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  theme,
 }) => {
   const [formData, setFormData] = useState<SolutionFormData>({
     title: '',
@@ -46,22 +44,15 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
     await onSubmit(formData);
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-md border ${
-    theme === 'dark'
-      ? 'bg-slate-800 border-slate-600 text-slate-100 placeholder-slate-400'
-      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-  } focus:outline-none focus:ring-2 focus:ring-emerald-500`;
-
-  const labelClass = `block text-sm font-medium mb-1 ${
-    theme === 'dark' ? 'text-slate-200' : 'text-gray-700'
-  }`;
+  const labelClass = 'block text-xs font-mono uppercase tracking-widest text-foreground-light';
+  const inputClass = 'dash-input mt-2 h-10';
+  const textareaClass = 'dash-input mt-2 h-auto min-h-[96px] py-2';
+  const selectClass = 'dash-input mt-2 h-10';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelClass}>
-          Title <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Title</label>
         <input
           type="text"
           required
@@ -69,32 +60,31 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
           onChange={(e) => handleChange('title', e.target.value)}
           className={inputClass}
           placeholder="Brief description of the error"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className={labelClass}>
-          Error Message <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Error message</label>
         <textarea
           required
           rows={3}
           value={formData.errorMessage}
           onChange={(e) => handleChange('errorMessage', e.target.value)}
-          className={inputClass}
+          className={textareaClass}
           placeholder="The actual error message"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className={labelClass}>
-          Error Type <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Error type</label>
         <select
           required
           value={formData.errorType}
           onChange={(e) => handleChange('errorType', e.target.value)}
-          className={inputClass}
+          className={selectClass}
+          disabled={isLoading}
         >
           <option value="">Select error type</option>
           <option value="feature_request">Feature Request</option>
@@ -113,51 +103,46 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
       </div>
 
       <div>
-        <label className={labelClass}>
-          Context <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Context</label>
         <textarea
           required
           rows={3}
           value={formData.context}
           onChange={(e) => handleChange('context', e.target.value)}
-          className={inputClass}
+          className={textareaClass}
           placeholder="When and where the error occurred"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className={labelClass}>
-          Root Cause <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Root cause</label>
         <textarea
           required
           rows={3}
           value={formData.rootCause}
           onChange={(e) => handleChange('rootCause', e.target.value)}
-          className={inputClass}
+          className={textareaClass}
           placeholder="Why the error happened"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className={labelClass}>
-          Solution <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Solution</label>
         <textarea
           required
           rows={4}
           value={formData.solution}
           onChange={(e) => handleChange('solution', e.target.value)}
-          className={inputClass}
+          className={textareaClass}
           placeholder="How you fixed it"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className={labelClass}>
-          Tags <span className="text-red-500">*</span>
-        </label>
+        <label className={labelClass}>Tags</label>
         <input
           type="text"
           required
@@ -165,6 +150,7 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
           onChange={(e) => handleChange('tags', e.target.value)}
           className={inputClass}
           placeholder="Comma-separated tags (e.g., react, typescript, hooks)"
+          disabled={isLoading}
         />
       </div>
 
@@ -179,22 +165,21 @@ export const SolutionForm: React.FC<SolutionFormProps> = ({
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button
+        <DashButton
           type="submit"
-          variant="primary"
-          isLoading={isLoading}
           disabled={isLoading}
+          variant="primary"
         >
           Create Solution
-        </Button>
-        <Button
+        </DashButton>
+        <DashButton
           type="button"
-          variant="secondary"
           onClick={onCancel}
           disabled={isLoading}
+          variant="default"
         >
           Cancel
-        </Button>
+        </DashButton>
       </div>
     </form>
   );

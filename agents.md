@@ -252,7 +252,7 @@ tailwindcss + shadcn
 18. Context8 前端（TanStack Start，repo root）使用 `VITE_API_BASE` 直连后端：邮箱验证码登录获取 JWT、创建 API Key、保存/搜索 solutions，请求带 Bearer 或 X-API-Key。
 19. 首页 `/` 为纯 marketing landing：不再请求 `GET /solutions?publicOnly=true`，不在首页展示/排序 public solutions；数据浏览与操作统一在 `/dashboard/*`。
 20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 主题定制后嵌入到 `src/pages/DemoChat.tsx`。
-21. 前端主题由 App 统一管理并持久化 `localStorage`，Layout 提供全局灯光切换，Home/Dashboard/DemoChat 统一按 `ThemeMode` 渲染。
+21. 前端主题由 ThemeProvider 统一管理并持久化 `localStorage`；页面/组件不再通过 props 传 `theme`，而是用 `html.dark` + token scope 控制：非 Dashboard 用 `.sb`，Dashboard 用 `.appdash`。
 22. 前端显示文案统一为英文，避免混入非英文可见文本。
 23. Demo Chat 前端不直连 OpenRouter，统一调用后端 `/llm/chat` 代理；OpenRouter 密钥只保存在后端环境变量中。
 24. Demo Chat 支持 Deep Search/Deep Thinking 开关：Deep Search 提高检索条数，Deep Thinking 追加更深入诊断指令。
@@ -277,3 +277,6 @@ tailwindcss + shadcn
 43. 主题切换 `<html>` 为单一真相：ThemeProvider 必须同步 `.dark` class + `data-theme` + `color-scheme`；页面/组件禁止再写 `theme === 'dark' ? ... : ...` 的大段分支，改用 token。
 44. 反抄袭底线：不直接复制第三方网站的图片/图标/大段 SVG path；允许复刻结构与风格，但资产必须自制或来自本项目许可资源。
 45. 非 Dashboard 页面如需复刻外部站点风格：样式必须作用域隔离（例如仅在 `.sb` wrapper 下生效），组件/文件命名保持中性（不要出现外部品牌名）。
+46. Dashboard UI chrome 统一使用 `AppShell hideChrome` + `DashboardShell`（侧边栏 + 顶栏 + Command Menu），不复用旧 `Layout`/顶部 tabs，避免“一堆特殊情况”。
+47. Dashboard 路由 query 约定：`/dashboard/solutions?create=1` 打开创建弹窗并会自动清理参数；`/dashboard/search?q=...` 用于 Command Menu/搜索页互通（路由使用 `validateSearch`，空 search 允许 `{}`）。
+48. `/login` 使用 `SignInShell` 并套用 `.appdash`，与 Dashboard 控件（`dash-input`/`DashButton`/`DashModal`）保持一致。

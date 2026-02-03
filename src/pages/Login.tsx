@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { API_BASE } from '../constants';
 import { ArrowRight, Check, AlertCircle, Clock, Rocket } from 'lucide-react';
 import { useSession } from '@/state/session';
+import { DashButton } from '@/components/dashboard-ui/DashButton';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -80,7 +81,7 @@ export const Login: React.FC = () => {
       }
 
       login(data.token, data.user?.email ?? email);
-      navigate({ to: '/dashboard/solutions' });
+      navigate({ to: '/dashboard/solutions', search: {} });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -104,9 +105,9 @@ export const Login: React.FC = () => {
         </p>
       </div>
 
-      <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.6)]">
-          <Rocket className="h-4 w-4 text-brand" aria-hidden="true" />
+      <div className="rounded-lg border border-default bg-alternative p-4 flex items-start gap-3">
+        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg border border-default bg-surface">
+          <Rocket className="h-4 w-4 text-[hsl(var(--dash-brand))]" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <div className="text-sm font-medium text-foreground">Existing users only</div>
@@ -115,15 +116,15 @@ export const Login: React.FC = () => {
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 text-[hsl(var(--sb-fg-light))]" aria-hidden="true" />
+        <div className="rounded-lg border border-default bg-alternative p-4 flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-foreground-light" aria-hidden="true" />
           <p className="text-sm text-foreground">{error}</p>
         </div>
       ) : null}
 
       {success ? (
-        <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
-          <Check className="mt-0.5 h-4 w-4 text-brand" aria-hidden="true" />
+        <div className="rounded-lg border border-default bg-alternative p-4 flex items-start gap-3">
+          <Check className="mt-0.5 h-4 w-4 text-[hsl(var(--dash-brand))]" aria-hidden="true" />
           <p className="text-sm text-foreground">{success}</p>
         </div>
       ) : null}
@@ -142,14 +143,15 @@ export const Login: React.FC = () => {
               placeholder="you@example.com"
               required
               disabled={loading || countdown > 0}
-              className="sb-input mt-2"
+              className="dash-input mt-2 h-10"
             />
           </div>
 
-          <button
+          <DashButton
             type="submit"
             disabled={loading || !email || countdown > 0}
-            className="sb-btn-primary w-full"
+            variant="primary"
+            className="w-full h-10 text-sm"
           >
             {loading ? (
               <>
@@ -166,7 +168,7 @@ export const Login: React.FC = () => {
                 Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </>
             )}
-          </button>
+          </DashButton>
         </form>
       ) : (
         <form onSubmit={handleVerifyCode} className="space-y-4">
@@ -183,7 +185,7 @@ export const Login: React.FC = () => {
               maxLength={6}
               required
               disabled={loading}
-              className="sb-input mt-2 h-14 px-4 text-center text-xl font-mono tracking-widest"
+              className="dash-input mt-2 h-14 px-4 text-center text-xl font-mono tracking-widest"
               inputMode="numeric"
               autoComplete="one-time-code"
             />
@@ -192,7 +194,7 @@ export const Login: React.FC = () => {
             </p>
           </div>
 
-          <button type="submit" disabled={loading || code.length !== 6} className="sb-btn-primary w-full">
+          <DashButton type="submit" disabled={loading || code.length !== 6} variant="primary" className="w-full h-10 text-sm">
             {loading ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" aria-hidden="true" />
@@ -203,17 +205,18 @@ export const Login: React.FC = () => {
                 Verify <Check className="h-4 w-4" aria-hidden="true" />
               </>
             )}
-          </button>
+          </DashButton>
 
           <div className="flex flex-col gap-2 text-sm">
-            <button
+            <DashButton
               type="button"
               onClick={handleResendCode}
               disabled={loading || countdown > 0}
-              className="sb-btn-secondary w-full"
+              variant="default"
+              className="w-full h-10 text-sm"
             >
               {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
-            </button>
+            </DashButton>
             <button
               type="button"
               onClick={() => {

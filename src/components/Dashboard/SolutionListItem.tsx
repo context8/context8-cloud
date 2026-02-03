@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
 import { Eye, Trash2, Lock, Unlock, MoreVertical } from 'lucide-react';
-import { Solution, ThemeMode } from '../../types';
-import { ErrorTypeBadge } from '../Common/ErrorTypeBadge';
-import { TagCloud } from '../Common/TagCloud';
+import { Solution } from '../../types';
+import { normalizeErrorType } from '../Common/ErrorTypeBadge';
 
 interface SolutionListItemProps {
   solution: Solution;
   onView: (solution: Solution) => void;
   onDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
-  theme: ThemeMode;
+}
+
+function formatErrorTypeLabel(type?: string) {
+  const normalized = normalizeErrorType(type);
+  if (normalized === 'ui_ux') return 'UI/UX';
+  if (normalized === 'ops_infra') return 'Ops/Infra';
+  if (normalized === 'build_ci') return 'Build/CI';
+  if (normalized === 'install_setup') return 'Install/Setup';
+  if (normalized === 'question_support') return 'Support';
+  if (normalized === 'api_integration') return 'API';
+  if (normalized === 'docs_request') return 'Docs';
+  return normalized
+    .split('_')
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
 }
 
 const formatDate = (dateString?: string): string => {
@@ -26,10 +39,8 @@ export const SolutionListItem: React.FC<SolutionListItemProps> = ({
   onView,
   onDelete,
   onTogglePublic,
-  theme,
 }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const isDark = theme === 'dark';
   const errorPreview = solution.errorMessage || solution.preview;
 
   const handleDeleteClick = () => {
@@ -44,54 +55,50 @@ export const SolutionListItem: React.FC<SolutionListItemProps> = ({
 
   return (
     <div
-      className={`
-        group flex items-center gap-4 px-4 py-3 transition-colors
-        ${isDark
-          ? 'border-b border-slate-800/50 hover:bg-slate-900/50'
-          : 'border-b border-slate-100 hover:bg-slate-50/50'
-        }
-      `}
+      className="group flex items-center gap-4 border-b border-default px-4 py-3 transition-colors hover:bg-[hsl(var(--dash-fg)/0.02)]"
     >
       {/* Error Type */}
-      <div className="flex-shrink-0 w-24">
-        <ErrorTypeBadge type={solution.errorType} size="sm" theme={theme} />
+        <div className="flex-shrink-0 w-24">
+        <span className="inline-flex items-center rounded-full border border-default bg-alternative px-2 py-0.5 text-xs text-foreground-light">
+          {formatErrorTypeLabel(solution.errorType)}
+        </span>
       </div>
 
       {/* Title & Description */}
       <div className="flex-1 min-w-0">
         <h3
-          className={`
-            font-medium truncate cursor-pointer transition-colors
-            ${isDark ? 'text-slate-200 hover:text-emerald-400' : 'text-slate-800 hover:text-emerald-600'}
-          `}
+          className="font-medium truncate cursor-pointer text-foreground hover:text-[hsl(var(--dash-brand))] transition-colors"
           onClick={() => onView(solution)}
         >
           {solution.title || 'Untitled Solution'}
         </h3>
         {errorPreview && (
-          <p className={`text-xs truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className="text-xs truncate text-foreground-light">
             {errorPreview}
           </p>
         )}
       </div>
 
       {/* Tags */}
-      <div className="hidden lg:flex flex-shrink-0 w-40">
-        <TagCloud tags={solution.tags} maxVisible={2} size="sm" theme={theme} />
+      <div className="hidden lg:flex flex-shrink-0 w-48 flex-wrap justify-end gap-1.5">
+        {(solution.tags ?? []).slice(0, 2).map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center rounded-md border border-default bg-alternative px-2 py-0.5 text-xs text-foreground-light"
+          >
+            {tag}
+          </span>
+        ))}
       </div>
 
       {/* Date */}
-      <div className={`flex-shrink-0 w-20 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <div className="flex-shrink-0 w-20 text-xs text-foreground-light">
         {formatDate(solution.createdAt)}
       </div>
 
       {/* Public/Private */}
       <div className="flex-shrink-0 w-6">
-        {solution.isPublic ? (
-          <Unlock size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
-        ) : (
-          <Lock size={14} className={isDark ? 'text-slate-500' : 'text-slate-400'} />
-        )}
+        {solution.isPublic ? <Unlock size={14} className="text-foreground-light" /> : <Lock size={14} className="text-foreground-light" />}
       </div>
 
       {/* Actions */}
@@ -99,13 +106,7 @@ export const SolutionListItem: React.FC<SolutionListItemProps> = ({
         <button
           type="button"
           onClick={() => onView(solution)}
-          className={`
-            p-1.5 rounded-md transition-colors
-            ${isDark
-              ? 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
-              : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-100'
-            }
-          `}
+          className="p-1.5 rounded-md transition-colors text-foreground-light hover:text-foreground hover:bg-[hsl(var(--dash-fg)/0.04)]"
           title="View details"
         >
           <Eye size={16} />
@@ -113,15 +114,12 @@ export const SolutionListItem: React.FC<SolutionListItemProps> = ({
         <button
           type="button"
           onClick={handleDeleteClick}
-          className={`
-            p-1.5 rounded-md transition-colors
-            ${confirmDelete
-              ? 'text-red-500 bg-red-500/10'
-              : isDark
-                ? 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
-                : 'text-slate-500 hover:text-red-500 hover:bg-slate-100'
-            }
-          `}
+          className={[
+            'p-1.5 rounded-md transition-colors',
+            confirmDelete
+              ? 'text-[hsl(0_84%_60%)] bg-[hsl(0_84%_60%/0.12)]'
+              : 'text-foreground-light hover:text-[hsl(0_84%_60%)] hover:bg-[hsl(var(--dash-fg)/0.04)]',
+          ].join(' ')}
           title={confirmDelete ? 'Click again to confirm' : 'Delete'}
         >
           <Trash2 size={16} />

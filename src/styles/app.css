@@ -336,6 +336,143 @@ body {
   }
 }
 
+/* Dashboard style scope.
+   Keep everything under `.appdash` to avoid leaking styles to marketing/docs/auth pages. */
+@layer components {
+  .appdash {
+    background-color: hsl(var(--dash-bg));
+    color: hsl(var(--dash-fg));
+  }
+
+  html:not(.dark) .appdash {
+    --dash-bg: 0 0% 100%;
+    --dash-fg: 0 0% 9%;
+    --dash-fg-muted: 0 0% 44%;
+    --dash-border: 0 0% 87.5%;
+    --dash-border-strong: 0 0% 83%;
+    --dash-surface: 0 0% 99.2%;
+    --dash-surface-2: 0 0% 97%;
+
+    --dash-brand: 153 60% 53%;
+    --dash-brand-bg: 155 100% 19%;
+    --dash-ring: 153 60% 53%;
+
+    --dash-sidebar-bg: 0 0% 98.8%;
+    --dash-sidebar-accent: 0 0% 92.9%;
+    --dash-sidebar-border: 0 0% 87.5%;
+    --dash-sidebar-fg: 0 0% 9%;
+    --dash-sidebar-fg-muted: 0 0% 44%;
+  }
+
+  html.dark .appdash {
+    --dash-bg: 0 0% 4%;
+    --dash-fg: 0 0% 98%;
+    --dash-fg-muted: 0 0% 54%;
+    --dash-border: 0 0% 18%;
+    --dash-border-strong: 0 0% 21%;
+    --dash-surface: 0 0% 7%;
+    --dash-surface-2: 0 0% 14%;
+
+    --dash-brand: 153 60% 53%;
+    --dash-brand-bg: 155 100% 19%;
+    --dash-ring: 153 60% 53%;
+
+    --dash-sidebar-bg: 0 0% 9%;
+    --dash-sidebar-accent: 0 0% 19.2%;
+    --dash-sidebar-border: 0 0% 18%;
+    --dash-sidebar-fg: 0 0% 98%;
+    --dash-sidebar-fg-muted: 0 0% 54%;
+  }
+
+  .appdash .bg-sidebar {
+    background-color: hsl(var(--dash-sidebar-bg));
+  }
+  .appdash .bg-surface {
+    background-color: hsl(var(--dash-surface));
+  }
+  .appdash .bg-alternative {
+    background-color: hsl(var(--dash-surface-2));
+  }
+
+  .appdash .text-foreground {
+    color: hsl(var(--dash-fg));
+  }
+  .appdash .text-foreground-light {
+    color: hsl(var(--dash-fg-muted));
+  }
+  .appdash .text-foreground-lighter {
+    color: hsl(var(--dash-sidebar-fg-muted));
+  }
+
+  .appdash .border-default {
+    border-color: hsl(var(--dash-border));
+  }
+  .appdash .border-strong {
+    border-color: hsl(var(--dash-border-strong));
+  }
+  .appdash .border-stronger {
+    border-color: hsl(var(--dash-border-strong));
+  }
+
+  .appdash .dash-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 30px;
+    padding: 0 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--dash-border));
+    background: transparent;
+    color: hsl(var(--dash-fg-muted));
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
+  }
+
+  .appdash .dash-btn:hover {
+    background: hsl(var(--dash-fg) / 0.04);
+    border-color: hsl(var(--dash-border-strong));
+    color: hsl(var(--dash-fg));
+  }
+
+  .appdash .dash-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--dash-ring) / 0.25);
+  }
+
+  .appdash .dash-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .appdash .dash-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--dash-border));
+    background: hsl(var(--dash-surface));
+    color: hsl(var(--dash-fg));
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .appdash .dash-input::placeholder {
+    color: hsl(var(--dash-fg-muted));
+  }
+
+  .appdash .dash-input:focus {
+    outline: none;
+    border-color: hsl(var(--dash-brand) / 0.45);
+    box-shadow: 0 0 0 3px hsl(var(--dash-ring) / 0.22);
+  }
+
+  .appdash .dash-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 /* Custom scrollbar for code blocks */
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
