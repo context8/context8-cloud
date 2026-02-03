@@ -55,7 +55,7 @@ body {
   }
 }
 
-/* Landing page style scope (homepage only).
+/* Non-dashboard style scope (marketing/docs/auth/demo).
    Keep everything under `.sb` to avoid leaking styles to other routes. */
 @layer components {
   .sb {
@@ -267,18 +267,18 @@ body {
     height: 42px;
     padding: 0 1rem;
     border-radius: 0.75rem;
-    border: 1px solid rgba(62, 207, 142, 0.3);
+    border: 1px solid hsl(var(--sb-brand) / 0.35);
     background: hsl(var(--sb-brand-bg));
     color: hsl(var(--sb-on-brand));
     transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
   }
 
   .sb .sb-btn-primary:hover {
-    background: rgba(0, 98, 57, 0.9);
+    background: hsl(var(--sb-brand-bg) / 0.92);
   }
 
   .sb .sb-btn-primary:active {
-    background: rgba(0, 98, 57, 0.85);
+    background: hsl(var(--sb-brand-bg) / 0.86);
   }
 
   .sb .sb-btn-primary:disabled {

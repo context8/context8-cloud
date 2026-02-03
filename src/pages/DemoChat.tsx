@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { AlertTriangle, Database, Terminal } from 'lucide-react';
 import { runOpenRouterAssistant, generateFollowUpSuggestions } from '../services/openrouterAssistant';
 import { GeminiChatInput } from '../components/GeminiChatInput';
 import { GeminiReasoningBlock } from '../components/GeminiReasoningBlock';
-import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
 import { ErrorTypeBadge } from '../components/Common/ErrorTypeBadge';
 import { TagCloud } from '../components/Common/TagCloud';
 import { Modal } from '../components/Common/Modal';
 import { SearchResult, Solution } from '../types';
-import { AlertTriangle, Database, Terminal, ChevronDown } from 'lucide-react';
 import { solutionsService } from '../services/api/solutions';
 import { useSession } from '@/state/session';
 import { useTheme } from '@/state/theme';
@@ -34,9 +35,58 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
+function SbMarkdown({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: ({ children }) => <h1 className="mt-4 text-xl font-semibold text-foreground">{children}</h1>,
+        h2: ({ children }) => <h2 className="mt-4 text-lg font-semibold text-foreground">{children}</h2>,
+        h3: ({ children }) => <h3 className="mt-3 text-base font-semibold text-foreground">{children}</h3>,
+        p: ({ children }) => <p className="mb-3 leading-relaxed text-foreground">{children}</p>,
+        ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 text-foreground">{children}</ul>,
+        ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 text-foreground">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        code: ({ className, children }) => {
+          const isInline = !className;
+          if (isInline) {
+            return (
+              <code className="rounded-md border border-default bg-[hsl(var(--sb-bg)/0.7)] px-1.5 py-0.5 font-mono text-[0.9em] text-foreground">
+                {children}
+              </code>
+            );
+          }
+          return <code className="block overflow-x-auto p-4 font-mono text-sm text-foreground">{children}</code>;
+        },
+        pre: ({ children }) => (
+          <pre className="mb-3 overflow-hidden rounded-xl border border-default bg-[hsl(var(--sb-bg)/0.55)]">
+            {children}
+          </pre>
+        ),
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-link underline underline-offset-4 hover:no-underline"
+          >
+            {children}
+          </a>
+        ),
+        blockquote: ({ children }) => (
+          <blockquote className="my-3 border-l-2 border-default pl-4 text-foreground-light">
+            {children}
+          </blockquote>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+}
+
 export const DemoChat: React.FC = () => {
-  const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const { session, apiKey } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -52,10 +102,13 @@ export const DemoChat: React.FC = () => {
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-  const auth = useMemo(() => ({
-    token: session?.token,
-    apiKey: apiKey ?? undefined,
-  }), [session?.token, apiKey]);
+  const auth = useMemo(
+    () => ({
+      token: session?.token,
+      apiKey: apiKey ?? undefined,
+    }),
+    [session?.token, apiKey]
+  );
 
   const authLabel = useMemo(() => {
     if (auth.apiKey) return `X-API-Key ${auth.apiKey.slice(0, 6)}...`;
@@ -157,10 +210,9 @@ export const DemoChat: React.FC = () => {
         auth,
         limit: deepSearchEnabled ? 8 : 5,
       });
+
       const duration = (Date.now() - startTime) / 1000;
-      const trace = result.toolTrace.length > 0
-        ? result.toolTrace.join('\n')
-        : 'No tool calls were made.';
+      const trace = result.toolTrace.length > 0 ? result.toolTrace.join('\n') : 'No tool calls were made.';
 
       updateMessage(assistantId, {
         content: result.reply,
@@ -171,18 +223,17 @@ export const DemoChat: React.FC = () => {
 
       setStatus('idle');
 
-      // Generate follow-up suggestions
       generateFollowUpSuggestions({
         userQuestion: prompt,
         aiResponse: result.reply,
         auth,
-      }).then((newSuggestions) => {
-        if (newSuggestions.length > 0) {
-          setSuggestions(newSuggestions);
-        }
-      }).catch((err) => {
-        console.error('Failed to generate suggestions:', err);
-      });
+      })
+        .then((newSuggestions) => {
+          if (newSuggestions.length > 0) setSuggestions(newSuggestions);
+        })
+        .catch((err) => {
+          console.error('Failed to generate suggestions:', err);
+        });
     } catch (err: any) {
       setStatus('error');
       console.error('[DemoChat] Assistant error:', err?.message || err);
@@ -199,240 +250,189 @@ export const DemoChat: React.FC = () => {
     setResetToken((prev) => prev + 1);
   };
 
-  const isDark = theme === 'dark';
-
   return (
-    <div className={`h-screen w-full flex flex-col ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
-      <header className={`flex-shrink-0 h-14 flex items-center justify-between px-4 sm:px-6 border-b backdrop-blur-md ${isDark ? 'bg-[#0a0a0a]/80 border-slate-800' : 'bg-white/80 border-emerald-100'}`}>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/"
-            className={`flex items-center gap-2 rounded-md px-2 py-1 cursor-pointer transition-colors shadow-sm ${isDark ? 'bg-slate-900 border border-slate-800 hover:border-emerald-500' : 'bg-white border border-emerald-100 hover:border-emerald-300'}`}
-          >
-            <div className={`rounded-sm p-0.5 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
-              <img src="/logo.png" alt="Context8 logo" className="h-4 w-4" />
-            </div>
-            <span className={`font-semibold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Context8</span>
-          </Link>
-
-          <div className={`hidden md:flex items-center gap-2 rounded-md px-3 py-1.5 text-sm border border-transparent ${isDark ? 'bg-slate-900/60' : 'bg-emerald-50/60'}`}>
-            <span className={isDark ? 'text-slate-300' : 'text-emerald-700'}>Personal</span>
-            <ChevronDown size={14} className={isDark ? 'text-slate-500' : 'text-emerald-300'} />
-            <button
-              className={`ml-2 transition-colors ${isDark ? 'text-slate-400 hover:text-emerald-300' : 'text-slate-500 hover:text-emerald-600'}`}
-              onClick={() => navigate({ to: '/dashboard/solutions' })}
-            >
-              Dashboard
-            </button>
-            <span className={`ml-2 ${isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-medium'}`}>
-              Demo
-            </span>
-          </div>
+    <div className="mx-auto w-full max-w-5xl px-6 py-10 lg:px-16 xl:px-20">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="text-xs font-mono uppercase tracking-widest text-foreground-light">Demo</div>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            A debugging library that scales.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-light sm:text-base">
+            Describe the bug, and Context8 will search relevant solutions before answering.
+          </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-full transition-colors border ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'}`}
-            title="Toggle Theme"
-          >
-            {isDark ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M12 21v-1m0-5a3 3 0 110-6 3 3 0 010 6z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
-          <button
-            onClick={resetChat}
-            className={`px-3 py-1.5 text-xs rounded-md transition-colors border font-medium ${isDark ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'}`}
-          >
-            New Chat
-          </button>
-        </div>
-      </header>
-
-      <div className={`flex-shrink-0 border-b ${isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50/50'} px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs`}>
-        <div className="flex items-center gap-2">
-          <Terminal size={14} className="text-emerald-500" />
-          <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>LLM tool-driven triage</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Database size={14} className="text-emerald-500" />
-          <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Search auth: {authLabel}</span>
-        </div>
-        {!auth.apiKey && !auth.token && (
-          <div className="flex items-center gap-2 text-amber-500">
-            <AlertTriangle size={14} /> Login or set API key for private results.
-          </div>
-        )}
+        <button type="button" onClick={resetChat} className="sb-btn-secondary h-10 px-4 text-xs">
+          New chat
+        </button>
       </div>
 
-      <main
-        ref={chatScrollRef}
-        className={`flex-1 relative overflow-y-auto overflow-x-hidden ${isDark ? 'bg-slate-950' : 'bg-white'}`}
-      >
-        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8 overflow-hidden">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              {msg.role === 'assistant' && (
-                <div className="flex flex-col items-center">
-                  <div className={`h-9 w-9 rounded-2xl flex items-center justify-center text-xs font-semibold ${isDark ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-600'}`}>
-                    C8
-                  </div>
-                </div>
-              )}
-              <div className="flex flex-col gap-3 max-w-[85%] w-full overflow-hidden">
-                <div
-                  className={`rounded-2xl border px-4 py-3 shadow-sm transition-all ${
-                    msg.role === 'user'
-                      ? isDark
-                        ? 'bg-slate-900 border-slate-800 text-slate-100'
-                        : 'bg-white border-slate-200 text-slate-900'
-                      : isDark
-                        ? 'bg-slate-900/60 border-slate-800 text-slate-100'
-                        : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
-                    <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                    {msg.flags?.deepSearch && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-600'}`}>
-                        Deep Search
-                      </span>
-                    )}
-                    {msg.flags?.deepThinking && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-indigo-500/10 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
-                        Deep Thinking
-                      </span>
-                    )}
-                  </div>
-
-                  {msg.role === 'assistant' && msg.thought && (
-                    <div className="mt-3">
-                      <GeminiReasoningBlock
-                        title="Retrieval steps"
-                        detail={msg.thought}
-                        duration={msg.thoughtDuration}
-                        theme={theme}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-3 text-sm md:text-base leading-relaxed">
-                    {msg.content ? (
-                      msg.role === 'assistant' ? (
-                        <MarkdownRenderer content={msg.content} theme={theme} />
-                      ) : (
-                        <span className={`whitespace-pre-wrap ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                          {msg.content}
-                        </span>
-                      )
-                    ) : (
-                      status === 'loading' && msg.role === 'assistant' ? (
-                        <span className="animate-pulse">...</span>
-                      ) : null
-                    )}
-                  </div>
-                </div>
-
-                {msg.role === 'assistant' && msg.hits && msg.hits.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
-                      <span>Matches</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-600'}`}>
-                        {msg.hits.length} found
-                      </span>
-                    </div>
-                    <div className="grid gap-2 w-full">
-                      {msg.hits.slice(0, 5).map((hit) => (
-                        <div
-                          key={hit.id}
-                          className={`rounded-xl border p-3 transition-colors overflow-hidden ${
-                            isDark
-                              ? 'bg-slate-950 border-slate-800 hover:border-emerald-500/40'
-                              : 'bg-white border-slate-200 hover:border-emerald-300'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1 overflow-hidden">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <ErrorTypeBadge type={hit.errorType} size="sm" theme={theme} />
-                                <span className={`text-sm font-semibold truncate block ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                                  {hit.title || 'Untitled Solution'}
-                                </span>
-                              </div>
-                              <p className={`mt-2 text-xs line-clamp-2 break-words ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                {buildHitPreview(hit)}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenSolution(hit.id)}
-                              className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-medium border transition-colors ${
-                                isDark
-                                  ? 'border-slate-700 text-slate-200 hover:border-emerald-400 hover:text-emerald-300'
-                                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:text-emerald-600'
-                              }`}
-                            >
-                              Open
-                            </button>
-                          </div>
-                          {hit.tags && hit.tags.length > 0 && (
-                            <div className="mt-2 overflow-hidden">
-                              <TagCloud tags={hit.tags} maxVisible={4} size="sm" theme={theme} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {msg.role === 'user' && (
-                <div className="flex flex-col items-center">
-                  <div className={`h-9 w-9 rounded-2xl flex items-center justify-center text-xs font-semibold ${isDark ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-600'}`}>
-                    You
-                  </div>
-                </div>
-              )}
+      <div className="mt-8 overflow-hidden rounded-2xl border border-default bg-[hsl(var(--sb-bg)/0.55)]">
+        <div className="border-b border-default bg-[hsl(var(--sb-bg)/0.6)] px-4 py-3 text-xs">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-4 text-foreground-light">
+              <span className="inline-flex items-center gap-2">
+                <Terminal className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
+                LLM tool-driven triage
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Database className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
+                Search auth: <span className="text-foreground">{authLabel}</span>
+              </span>
+              {!auth.apiKey && !auth.token ? (
+                <span className="inline-flex items-center gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>
+                    Sign in or set an API key for private results.{' '}
+                    <Link to="/login" className="text-brand-link underline underline-offset-4 hover:no-underline">
+                      Sign in
+                    </Link>
+                  </span>
+                </span>
+              ) : null}
             </div>
-          ))}
-          <div ref={chatEndRef} className="h-4" />
+          </div>
         </div>
-        {showScrollToBottom && (
-          <button
-            onClick={() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
-            className={`sticky bottom-6 ml-auto mr-6 flex items-center gap-2 rounded-full border px-4 py-2 text-xs shadow-md ${
-              isDark
-                ? 'bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Jump to latest
-          </button>
-        )}
-      </main>
 
-      <div className={`flex-shrink-0 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
-        <GeminiChatInput
-          onSend={handleSend}
-          disabled={status === 'loading'}
-          theme={theme}
-          resetToken={resetToken}
-          initialValue={prefill}
-          deepSearchEnabled={deepSearchEnabled}
-          deepThinkingEnabled={deepThinkingEnabled}
-          onToggleDeepSearch={() => setDeepSearchEnabled((prev) => !prev)}
-          onToggleDeepThinking={() => setDeepThinkingEnabled((prev) => !prev)}
-          suggestions={suggestions}
-        />
+        <div className="flex min-h-[70vh] flex-col">
+          <div ref={chatScrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 sm:px-6">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'assistant' ? (
+                    <div className="flex flex-col items-center">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-default bg-[hsl(var(--sb-bg)/0.6)] text-xs font-semibold text-foreground">
+                        C8
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="flex w-full max-w-[85%] flex-col gap-3 overflow-hidden">
+                    <div
+                      className={[
+                        'rounded-2xl border px-4 py-3 transition-colors',
+                        msg.role === 'user'
+                          ? 'border-[hsl(var(--sb-brand)/0.25)] bg-[hsl(var(--sb-brand)/0.08)] text-foreground'
+                          : 'border-default bg-[hsl(var(--sb-bg)/0.55)] text-foreground',
+                      ].join(' ')}
+                    >
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-foreground-light">
+                        <span>{msg.role === 'user' ? 'You' : 'Context8'}</span>
+                        {msg.flags?.deepSearch ? (
+                          <span className="rounded-full border border-[hsl(var(--sb-brand)/0.35)] bg-[hsl(var(--sb-brand)/0.12)] px-2 py-0.5 text-[10px] text-foreground">
+                            Deep Search
+                          </span>
+                        ) : null}
+                        {msg.flags?.deepThinking ? (
+                          <span className="rounded-full border border-default bg-[hsl(var(--sb-fg)/0.06)] px-2 py-0.5 text-[10px] text-foreground">
+                            Deep Thinking
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {msg.role === 'assistant' && msg.thought ? (
+                        <div className="mt-3">
+                          <GeminiReasoningBlock
+                            title="Retrieval steps"
+                            detail={msg.thought}
+                            duration={msg.thoughtDuration}
+                            theme={theme}
+                          />
+                        </div>
+                      ) : null}
+
+                      <div className="mt-3 text-sm leading-relaxed md:text-base">
+                        {msg.content ? (
+                          msg.role === 'assistant' ? (
+                            <SbMarkdown content={msg.content} />
+                          ) : (
+                            <span className="whitespace-pre-wrap text-foreground">{msg.content}</span>
+                          )
+                        ) : status === 'loading' && msg.role === 'assistant' ? (
+                          <span className="animate-pulse">...</span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {msg.role === 'assistant' && msg.hits && msg.hits.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-foreground-light">
+                          <span>Matches</span>
+                          <span className="rounded-full border border-[hsl(var(--sb-brand)/0.35)] bg-[hsl(var(--sb-brand)/0.12)] px-2 py-0.5 text-[10px] text-foreground">
+                            {msg.hits.length} found
+                          </span>
+                        </div>
+                        <div className="grid w-full gap-2">
+                          {msg.hits.slice(0, 5).map((hit) => (
+                            <div
+                              key={hit.id}
+                              className="overflow-hidden rounded-xl border border-default bg-[hsl(var(--sb-bg)/0.45)] p-3 transition-colors hover:border-[hsl(var(--sb-brand)/0.35)]"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <ErrorTypeBadge type={hit.errorType} size="sm" theme={theme} />
+                                    <span className="block truncate text-sm font-semibold text-foreground">
+                                      {hit.title || 'Untitled Solution'}
+                                    </span>
+                                  </div>
+                                  <p className="mt-2 line-clamp-2 break-words text-xs text-foreground-light">
+                                    {buildHitPreview(hit)}
+                                  </p>
+                                </div>
+                                <button type="button" onClick={() => handleOpenSolution(hit.id)} className="sb-btn-secondary h-9 px-3 text-xs">
+                                  Open
+                                </button>
+                              </div>
+                              {hit.tags && hit.tags.length > 0 ? (
+                                <div className="mt-2 overflow-hidden">
+                                  <TagCloud tags={hit.tags} maxVisible={4} size="sm" theme={theme} />
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {msg.role === 'user' ? (
+                    <div className="flex flex-col items-center">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-default bg-[hsl(var(--sb-bg)/0.6)] text-xs font-semibold text-foreground">
+                        You
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+              <div ref={chatEndRef} className="h-4" />
+            </div>
+
+            {showScrollToBottom ? (
+              <button
+                type="button"
+                onClick={() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="sticky bottom-6 ml-auto mr-6 flex items-center gap-2 rounded-full border border-default bg-[hsl(var(--sb-bg)/0.75)] px-4 py-2 text-xs text-foreground hover:bg-[hsl(var(--sb-bg))]"
+              >
+                Jump to latest
+              </button>
+            ) : null}
+          </div>
+
+          <div className="border-t border-default">
+            <GeminiChatInput
+              onSend={handleSend}
+              disabled={status === 'loading'}
+              resetToken={resetToken}
+              initialValue={prefill}
+              deepSearchEnabled={deepSearchEnabled}
+              deepThinkingEnabled={deepThinkingEnabled}
+              onToggleDeepSearch={() => setDeepSearchEnabled((prev) => !prev)}
+              onToggleDeepThinking={() => setDeepThinkingEnabled((prev) => !prev)}
+              suggestions={suggestions}
+            />
+          </div>
+        </div>
       </div>
 
       <Modal
@@ -445,91 +445,52 @@ export const DemoChat: React.FC = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <ErrorTypeBadge type={selectedSolution.errorType} size="md" theme={theme} />
-              {selectedSolution.tags && selectedSolution.tags.length > 0 && (
+              {selectedSolution.tags && selectedSolution.tags.length > 0 ? (
                 <TagCloud tags={selectedSolution.tags} maxVisible={5} size="sm" theme={theme} />
-              )}
+              ) : null}
             </div>
 
-            {isDetailLoading && (
-              <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Loading full details...
-              </div>
-            )}
+            {isDetailLoading ? <div className="text-sm text-gray-500 dark:text-slate-400">Loading full details...</div> : null}
 
             <div>
-              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                 Error Message
               </h4>
-              <div className={`p-3 rounded-lg font-mono text-sm ${isDark ? 'bg-slate-800 text-red-300' : 'bg-red-50 text-red-700'}`}>
+              <div className="rounded-lg bg-red-50 p-3 font-mono text-sm text-red-700 dark:bg-slate-800 dark:text-red-300">
                 {selectedSolution.errorMessage || 'No error message'}
               </div>
             </div>
 
-            {selectedSolution.context && (
+            {selectedSolution.context ? (
               <div>
-                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                   Context
                 </h4>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
-                  {selectedSolution.context}
-                </p>
+                <p className="text-slate-700 dark:text-slate-300">{selectedSolution.context}</p>
               </div>
-            )}
+            ) : null}
 
-            {selectedSolution.rootCause && (
+            {selectedSolution.rootCause ? (
               <div>
-                <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                   Root Cause
                 </h4>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
-                  {selectedSolution.rootCause}
-                </p>
+                <p className="text-slate-700 dark:text-slate-300">{selectedSolution.rootCause}</p>
               </div>
-            )}
+            ) : null}
 
             <div>
-              <h4 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
                 Solution
               </h4>
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-emerald-50/50'}`}>
-                <MarkdownRenderer
-                  content={selectedSolution.solution || 'No solution provided'}
-                  theme={theme}
-                />
+              <div className="rounded-lg bg-emerald-50/50 p-4 dark:bg-slate-800/50">
+                <SbMarkdown content={selectedSolution.solution || 'No solution provided'} />
               </div>
             </div>
           </div>
         )}
       </Modal>
-
-      <footer className={`flex-shrink-0 border-t px-4 sm:px-6 py-3 ${isDark ? 'border-slate-800 bg-[#0a0a0a]' : 'border-emerald-100 bg-white'}`}>
-        <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-          <span>© 2025, Context8 local knowledge</span>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate({ to: '/' })}
-              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
-            >
-              Home
-            </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard/solutions' })}
-              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
-            >
-              Dashboard
-            </button>
-            <Link to="/learn" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>
-              About
-            </Link>
-            <a
-              href="mailto:contact@context8.cloud"
-              className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}
-            >
-              Contact
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
+
