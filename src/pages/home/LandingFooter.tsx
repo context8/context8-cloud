@@ -11,7 +11,7 @@ const groups: Array<{ title: string; links: FooterLink[] }> = [
   {
     title: 'Product',
     links: [
-      { kind: 'internal', label: 'Public solutions', to: '/' },
+      { kind: 'internal', label: 'Home', to: '/' },
       { kind: 'internal', label: 'Demo chat', to: '/demo' },
       { kind: 'internal', label: 'Dashboard', to: '/dashboard/solutions' },
     ],
@@ -74,7 +74,7 @@ export function LandingFooter() {
       <div className="w-full !py-0">
         <div className="sm:py-[4.5rem] container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 grid grid-cols-2 md:flex items-center justify-between text-foreground md:justify-center gap-8 md:gap-16 xl:gap-28 !py-6 md:!py-10 text-sm">
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
-            <span>Ship fast your code</span>
+            <span>Ship your code faster</span>
             <a className="text-brand-link hover:underline" href="/learn">
               Learn more
             </a>
