@@ -182,11 +182,25 @@
 触发条件：针对端对端浏览器访问测试：用户要求进行测试或你觉得需要进行页面测试：
 你对所有页面都自动化测试，这样不用我人肉一个一个去测试了。默认优先使用 `agent-browser`（https://github.com/vercel-labs/agent-browser）来代替 chrome dev mcp；只有在 `agent-browser` 不可用/能力缺失时才允许回退到 chrome dev mcp。
 
+额外触发条件（同样必须用 `agent-browser` 跑一遍流程）：
+- 我让你“去看某个网站的设计/交互/布局/动画/竞品页面”，不要只用肉眼截图：用 `agent-browser` 走一遍可复现的浏览 + 证据采集。
+
 ### 安装/前置（缺一个就别跑）
 
 - 安装：`npm install -g agent-browser`
 - 安装 Chromium：`agent-browser install`
 - Linux 依赖：`agent-browser install --with-deps`
+
+### CDP 模式（默认：外部网站/Cloudflare 场景必须走这个）
+
+很多外部站会对 headless/自动化特征更敏感。此时不要让 `agent-browser` 自己启动浏览器，改为先启动一个“真实”Chrome/Chromium，然后用 CDP 端口接入：
+
+1. 启动 Chrome 并打开远程调试端口（示例端口：9222）
+   - macOS（Chrome）：`/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/agent-browser-cdp-profile`
+   - Linux（Chromium/Chrome）：`google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/agent-browser-cdp-profile`
+2. 连接 CDP（两种方式选其一）
+   - 连接一次：`agent-browser connect 9222`，后续直接跑 `agent-browser open/snapshot/click/...`
+   - 每次带参数：`agent-browser --cdp 9222 snapshot`
 
 ### 标准页面检查流程（每个 URL 都必须跑一遍）
 
@@ -252,3 +266,4 @@ tailwindcss + shadcn
 32. 本地预览流程：`bun run build` 后运行 `bun run start`，与 `node .output/server/index.mjs` 等价。
 33. 需要模拟 Vercel 构建时使用 `VERCEL=1 bun run build` 触发 Nitro 的 `preset: vercel`。
 34. E2E 浏览器自动化测试默认工具为 `agent-browser`（snapshot refs `@eN` 优先，必须检查 `errors`/`console` 并留 `screenshot` 证据；需要复用/隔离用 `--profile`/`--session`；仅当 `agent-browser` 不可用或能力缺失时回退到 chrome dev mcp）。
+35. 访问外部网站做设计/竞品评审，或遇到 Cloudflare 等拦截时：`agent-browser` 必须走 CDP 模式（先起 Chrome `--remote-debugging-port=9222`，再 `agent-browser connect 9222` 或 `agent-browser --cdp 9222 ...`），不要让 `agent-browser` 自己启动浏览器。
