@@ -74,22 +74,11 @@ export function LandingFooter() {
       <div className="w-full !py-0">
         <div className="sm:py-[4.5rem] container relative mx-auto px-6 py-16 md:py-24 lg:px-16 lg:py-24 xl:px-20 grid grid-cols-2 md:flex items-center justify-between text-foreground md:justify-center gap-8 md:gap-16 xl:gap-28 !py-6 md:!py-10 text-sm">
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
-            <span>We protect your data.</span>
+            <span>Ship fast your code</span>
             <a className="text-brand-link hover:underline" href="/learn">
               Learn more
             </a>
           </div>
-
-          <ul className="flex flex-col md:flex-row gap-2 md:gap-8 justify-center md:items-center">
-            <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <Check className="h-4 w-4" aria-hidden="true" />
-              SOC2 Type 2 <span className="text-foreground-light hidden sm:inline">Aligned</span>
-            </li>
-            <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <Check className="h-4 w-4" aria-hidden="true" />
-              Privacy <span className="text-foreground-light hidden sm:inline">First</span>
-            </li>
-          </ul>
         </div>
 
         <div className="w-full h-px bg-gradient-to-r from-transparent via-[hsl(var(--sb-border))] to-transparent" />
