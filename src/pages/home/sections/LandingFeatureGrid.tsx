@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Key, Library, Search, Terminal, Users, Vault } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type Feature = {
   title: string;
   description: string;
-  Icon: React.ComponentType<{ className?: string }>;
+  Icon: LucideIcon;
   colSpanClass: string;
 };
 
@@ -58,8 +59,8 @@ function FeatureCard({ feature }: { feature: Feature }) {
       ].join(' ')}
     >
       <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-default bg-[hsl(var(--sb-bg)/0.6)]">
-          <Icon className="h-5 w-5 text-brand" aria-hidden="true" />
+        <div className="shrink-0 flex size-11 items-center justify-center rounded-md border border-default bg-[hsl(var(--sb-bg)/0.6)] p-2.5">
+          <Icon className="h-[18px] w-[18px] text-brand" strokeWidth={1.5} aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <h3 className="text-foreground text-base">{feature.title}</h3>
@@ -103,4 +104,3 @@ export function LandingFeatureGrid() {
     </section>
   );
 }
-
