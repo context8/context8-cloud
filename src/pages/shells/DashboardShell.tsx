@@ -86,7 +86,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <header className="h-14 border-b border-default bg-surface">
         <div className="mx-auto flex h-14 w-full items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Link to="/dashboard/solutions" search={{}} className="flex items-center gap-2" aria-label="Dashboard Home">
+            <Link to="/" className="flex items-center gap-2" aria-label="Context8 Home">
               <img alt="Context8 Logo" src="/logo.png" className="h-[26px] w-[26px] rounded" />
             </Link>
 
