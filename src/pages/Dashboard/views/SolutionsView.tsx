@@ -20,12 +20,16 @@ export interface SolutionsViewProps {
   token: string | null;
   apiKey: string | null;
   theme: ThemeMode;
+  autoOpenCreate?: boolean;
+  onAutoOpenCreateHandled?: () => void;
 }
 
 export const SolutionsView: React.FC<SolutionsViewProps> = ({
   token,
   apiKey,
   theme,
+  autoOpenCreate,
+  onAutoOpenCreateHandled,
 }) => {
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -37,6 +41,12 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    if (!autoOpenCreate) return;
+    setShowCreateModal(true);
+    onAutoOpenCreateHandled?.();
+  }, [autoOpenCreate, onAutoOpenCreateHandled]);
 
   const authOptions = useMemo(() => {
     return { token: token ?? undefined, apiKey: apiKey ?? undefined };
