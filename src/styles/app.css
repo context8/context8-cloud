@@ -1,9 +1,58 @@
 @import "tailwindcss";
 
+/*
+  X.ai-inspired token system (Tailwind v4 @theme):
+  - semantic HSL triplets for runtime theming
+  - font pair: sans for reading, mono for controls
+*/
+
+:root {
+  --background: 0 0% 100%;
+  --primary: 0 0% 0%;
+  --secondary: 216 4% 45%;
+  --border: 220 13% 91%;
+  --accent: 22 100% 51.6%;
+
+  --font-universal-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+html.dark {
+  --background: 0 0% 4%;
+  --primary: 0 0% 100%;
+  --secondary: 216 4% 51%;
+  --border: 221 12% 14%;
+  --accent: 22 100% 51.6%;
+}
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-primary: hsl(var(--primary));
+  --color-secondary: hsl(var(--secondary));
+  --color-border: hsl(var(--border));
+  --color-accent: hsl(var(--accent));
+
+  --font-sans: var(--font-universal-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
 body {
-  font-family: Inter, sans-serif;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-universal-sans);
+  background: hsl(var(--background));
+  color: hsl(var(--primary));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .mono-tag {
+    @apply font-mono uppercase tracking-widest;
+  }
 }
 
 /* Custom scrollbar for code blocks */
@@ -30,4 +79,3 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-

@@ -48,7 +48,7 @@ function IndexRoute() {
   }, [navigate, session?.token]);
 
   return (
-    <AppShell>
+    <AppShell hideChrome>
       <Home theme={theme} initialSolutions={solutions} initialError={error} />
     </AppShell>
   );
