@@ -215,3 +215,4 @@ tailwindcss + shadcn
 24. Demo Chat 支持 Deep Search/Deep Thinking 开关：Deep Search 提高检索条数，Deep Thinking 追加更深入诊断指令。
 25. Demo 页面在 `Layout` 中启用 `hideChrome` 全屏渲染，不显示全站 header/footer/辅助导航与匹配列表区。
 26. API Key 删除需要输入确认短语并二次确认，且必须提示 public solutions 不会被删除，如需删除需先切为 private。
+27. 前端包管理统一使用 bun：安装用 `bun install --frozen-lockfile`；仓库只提交 `frontend/bun.lock`，不再提交 `frontend/package-lock.json`（也不引入 yarn/pnpm 锁文件）。
