@@ -182,6 +182,39 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      <footer className="border-t border-default bg-surface">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-foreground-light">
+          <span>© {new Date().getFullYear()} Context8</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link to="/learn" className="transition-colors hover:text-foreground">
+              Learn
+            </Link>
+            <a
+              href="mailto:contact@context8.cloud"
+              className="transition-colors hover:text-foreground"
+            >
+              Contact
+            </a>
+            <a
+              href="https://x.com/context8_org"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              X
+            </a>
+            <a
+              href="https://discord.gg/CtX9tnNX3w"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              Discord
+            </a>
+          </div>
+        </div>
+      </footer>
+
       <CommandMenu open={menuOpen} onOpenChange={setMenuOpen} />
     </div>
   );
