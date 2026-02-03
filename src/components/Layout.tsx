@@ -143,7 +143,7 @@ export const Layout: React.FC<LayoutProps> = ({
                 <a href="mailto:contact@context8.cloud" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Contact</a>
                 <a href="#" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Legal</a>
                 <a href="https://x.com/context8_org" target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>X</a>
-                <a href="https://discord.gg/BDGVMmws" target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Discord</a>
+                <a href="https://discord.gg/CtX9tnNX3w" target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? 'hover:text-emerald-300' : 'hover:text-emerald-600'}`}>Discord</a>
               </div>
             </div>
           </footer>

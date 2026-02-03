@@ -37,7 +37,7 @@ const groups: Array<{ title: string; links: FooterLink[] }> = [
     links: [
       { kind: 'external', label: 'Contact', href: 'mailto:contact@context8.cloud' },
       { kind: 'external', label: 'X', href: 'https://x.com/context8_org' },
-      { kind: 'external', label: 'Discord', href: 'https://discord.gg/BDGVMmws' },
+      { kind: 'external', label: 'Discord', href: 'https://discord.gg/CtX9tnNX3w' },
     ],
   },
 ];
@@ -123,7 +123,7 @@ export function LandingFooter() {
                 <span className="sr-only">GitHub</span>
                 <Github className="h-[22px] w-[22px]" aria-hidden="true" />
               </a>
-              <a href="https://discord.gg/BDGVMmws" className="text-foreground-light hover:text-foreground transition">
+              <a href="https://discord.gg/CtX9tnNX3w" className="text-foreground-light hover:text-foreground transition">
                 <span className="sr-only">Discord</span>
                 <MessageSquare className="h-[22px] w-[22px]" aria-hidden="true" />
               </a>

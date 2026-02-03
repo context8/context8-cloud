@@ -28,7 +28,7 @@ const navItems: Item[] = [
   { kind: 'internal', label: 'Search', to: '/dashboard/search' },
   { kind: 'internal', label: 'Demo', to: '/demo' },
   { kind: 'external', label: 'GitHub', href: 'https://github.com/context8' },
-  { kind: 'external', label: 'Discord', href: 'https://discord.gg/BDGVMmws' },
+  { kind: 'external', label: 'Discord', href: 'https://discord.gg/CtX9tnNX3w' },
 ];
 
 export function LandingNavbar() {

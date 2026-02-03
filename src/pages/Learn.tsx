@@ -303,7 +303,7 @@ export function Learn() {
             </div>
             <a
               className="sb-btn-secondary"
-              href="https://discord.gg/BDGVMmws"
+              href="https://discord.gg/CtX9tnNX3w"
               target="_blank"
               rel="noreferrer"
             >
