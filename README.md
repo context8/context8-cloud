@@ -1,23 +1,32 @@
-# Context8 Cloud Frontend (Vite)
+# Context8 Cloud Frontend (TanStack Start)
 
-This repository contains the Vite + React frontend for Context8 Cloud.
+This repository contains the TanStack Start + React frontend for Context8 Cloud.
 
 The backend service is **not** included in this repo. You must provide a compatible API server and point the frontend to it via `VITE_API_BASE`.
 
 ## Quickstart
 ```bash
-cd frontend
 bun install --frozen-lockfile
 cp .env.local.example .env.local
 bun run dev
 ```
 
-Open `http://localhost:5173`.
+Open `http://localhost:3000`.
+
+## Build & Preview
+```bash
+bun run build
+bun run start
+```
 
 ## Configuration
 Set `VITE_API_BASE` to your backend base URL (e.g. `http://localhost:8000`).
 
 If the backend is not running (or the URL is wrong), the UI will still render, but login / API key management / save / search will fail.
+
+## Deploy (Vercel)
+- Set `VITE_API_BASE` in Vercel Project Settings → Environment Variables.
+- Build command: `bun run build`
 
 ## Backend dependency (high level API contract)
 The frontend expects a backend that supports at least these routes:

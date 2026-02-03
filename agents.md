@@ -197,22 +197,25 @@ tailwindcss + shadcn
 6. 保存解决方案时如缺少依赖版本，会明确提示缺失/不含数字的依赖名，便于补全版本后重试。
 7. 本地 Context8 DB 改为 better-sqlite3 + WAL，支持多实例并发读写；写入不再全量覆盖，仍使用 `~/.context8/solutions.db`。
 8. `context8-mcp update` 会先执行本地 DB 迁移守护（WAL、schema、稀疏索引重建），旧 DB 自动适配，无需手动干预。
-6. Context8 云版本使用多租户设计：Solution 表加 user_id 字段，所有查询（CRUD、搜索、向量搜索）按 user_id 过滤，确保用户数据隔离。
-9. Neon Postgres 用户表规范：启用 pgcrypto，使用 `gen_random_uuid()` 生成主键，列为 `id uuid primary key default gen_random_uuid()`, `username text unique not null`, `email text unique not null`, `password text not null`（存储哈希而非明文），`created_at timestamptz not null default now()`。
-10. Context8 MCP 本地版 solutions 表需持久化 labels 与 cli_library_id（仅存引用，不存 Context7 文档内容），缺少自动 schema 迁移时需补列，索引/嵌入纳入标签与引用，文档统一指向 `~/.context8`（清理 `.errorsolver` 旧路径描述）。
-11. Context8 云后端基线：所有解决方案与搜索路由强制 email_verified 用户/API Key 访问；嵌入占位改为 SHA256 种子确定性向量；启动尝试创建 pgvector ivfflat 索引；Alembic 初始迁移（da16b97d5c07）幂等建表并启用 citext/vector，EMBEDDING_DIM 取环境或默认 384。
-12. Context8 前端（frontend/）使用 `VITE_API_BASE` 直连 FastAPI：邮箱验证码登录获取 JWT、创建 API Key、保存/搜索 solutions，所有请求带 Bearer 或 X-API-Key。
+9. Context8 云版本使用多租户设计：Solution 表加 user_id 字段，所有查询（CRUD、搜索、向量搜索）按 user_id 过滤，确保用户数据隔离。
+10. Neon Postgres 用户表规范：启用 pgcrypto，使用 `gen_random_uuid()` 生成主键，列为 `id uuid primary key default gen_random_uuid()`, `username text unique not null`, `email text unique not null`, `password text not null`（存储哈希而非明文），`created_at timestamptz not null default now()`。
+11. Context8 MCP 本地版 solutions 表需持久化 labels 与 cli_library_id（仅存引用，不存 Context7 文档内容），缺少自动 schema 迁移时需补列，索引/嵌入纳入标签与引用，文档统一指向 `~/.context8`（清理 `.errorsolver` 旧路径描述）。
+12. Context8 云后端基线：所有解决方案与搜索路由强制 email_verified 用户/API Key 访问；嵌入占位改为 SHA256 种子确定性向量；启动尝试创建 pgvector ivfflat 索引；Alembic 初始迁移（da16b97d5c07）幂等建表并启用 citext/vector，EMBEDDING_DIM 取环境或默认 384。
 13. 验证码注册兼容 legacy schema：创建/更新用户时自动填充 `username=email`、`password=""`，避免 `users` 表非空约束导致 500。
-14. Context8 云搜索接口要求 query 非空；当前 Modal 实例 `https://ybpang-1--context-8.modal.run` 通过 X-API-Key 请求返回 200/total=0 代表鉴权成功但账户下暂无 solutions。
-15. Context8 云写入可直接使用 X-API-Key POST `/solutions`（必填 title/errorMessage/errorType/context/rootCause/solution/tags）；写入后可用 `/search` 立即查询确认（已验证 Modal 实例成功写入并可检索）。
+14. Context8 云搜索接口要求 query 非空；用 X-API-Key 请求返回 200/total=0 代表鉴权成功但账户下暂无 solutions。
+15. Context8 云写入可直接使用 X-API-Key POST `/solutions`（必填 title/errorMessage/errorType/context/rootCause/solution/tags）；写入后可用 `/search` 立即查询确认。
 16. Context8 CLI 远端同步：`remote-config` 将 URL/API Key 写入 `~/.context8/config.json`（优先级 flags > env > 文件）；`push-remote` 支持 dry-run/force/concurrency，去重映射存于 `~/.context8/remote-sync.json`。
 17. Context8 检索实现为自建稀疏倒排索引（inverted_index + solution_stats）与稠密向量混排，无 SQLite FTS 虚表；空索引由 ensureSparseIndex 回填。
-18. 前端首页展示公共方案：未登录调用 `GET /solutions?publicOnly=true&limit=50` 获取公开 solutions，客户端搜索/排序仅基于这批数据；缺失 views/upvotes 时 Popular/Trending 退化为按 createdAt；卡片展开仅用于浏览，保存或导航统一引导到 Dashboard。
-19. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 主题定制后嵌入到 `frontend/pages/DemoChat.tsx`。
+18. Context8 前端（TanStack Start，repo root）使用 `VITE_API_BASE` 直连后端：邮箱验证码登录获取 JWT、创建 API Key、保存/搜索 solutions，请求带 Bearer 或 X-API-Key。
+19. 前端首页展示公共方案：未登录调用 `GET /solutions?publicOnly=true&limit=50` 获取公开 solutions，客户端搜索/排序仅基于这批数据；缺失 views/upvotes 时 Popular/Trending 退化为按 createdAt；卡片展开仅用于浏览，保存或导航统一引导到 Dashboard。
+20. Demo Chat UI 复用 Gemini 结构（聊天气泡+可展开检索步骤），以 Context8 主题定制后嵌入到 `src/pages/DemoChat.tsx`。
 21. 前端主题由 App 统一管理并持久化 `localStorage`，Layout 提供全局灯光切换，Home/Dashboard/DemoChat 统一按 `ThemeMode` 渲染。
 22. 前端显示文案统一为英文，避免混入非英文可见文本。
 23. Demo Chat 前端不直连 OpenRouter，统一调用后端 `/llm/chat` 代理；OpenRouter 密钥只保存在后端环境变量中。
 24. Demo Chat 支持 Deep Search/Deep Thinking 开关：Deep Search 提高检索条数，Deep Thinking 追加更深入诊断指令。
 25. Demo 页面在 `Layout` 中启用 `hideChrome` 全屏渲染，不显示全站 header/footer/辅助导航与匹配列表区。
 26. API Key 删除需要输入确认短语并二次确认，且必须提示 public solutions 不会被删除，如需删除需先切为 private。
-27. 前端包管理统一使用 bun：安装用 `bun install --frozen-lockfile`；仓库只提交 `frontend/bun.lock`，不再提交 `frontend/package-lock.json`（也不引入 yarn/pnpm 锁文件）。
+27. 前端包管理统一使用 bun：安装用 `bun install --frozen-lockfile`；仓库只提交 repo root 的 `bun.lock`，不提交 package-lock/yarn/pnpm 锁文件。
+28. 前端路由基于 TanStack Start 文件路由：路由文件位于 `src/routes/`，`src/routeTree.gen.ts` 为生成文件且必须提交。
+29. SSR 策略：公开页面可 SSR；需登录的页面统一 `ssr: false`，避免把用户态塞进服务端渲染。
+30. Vercel 部署使用 `nitro/vite` 产物：`bun run build` 生成 `.output/`；本地预览用 `node .output/server/index.mjs`。
