@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { SearchView } from '@/pages/Dashboard/views/SearchView';
-import { useTheme } from '@/state/theme';
 import { useSession } from '@/state/session';
 
 export const Route = createFileRoute('/dashboard/search')({
@@ -13,8 +12,8 @@ export const Route = createFileRoute('/dashboard/search')({
 });
 
 function SearchRoute() {
-  const { theme } = useTheme();
+  const { q } = Route.useSearch();
   const { session, apiKey } = useSession();
 
-  return <SearchView token={session?.token ?? null} apiKey={apiKey} theme={theme} />;
+  return <SearchView token={session?.token ?? null} apiKey={apiKey} initialQuery={q} />;
 }

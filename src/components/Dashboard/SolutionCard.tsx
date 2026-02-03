@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
 import { Eye, Trash2, Lock, Unlock } from 'lucide-react';
-import { Solution, ThemeMode } from '../../types';
-import { Button } from '../Common/Button';
+import { Solution } from '../../types';
 import { Toggle } from '../Common/Toggle';
-import { ErrorTypeBadge } from '../Common/ErrorTypeBadge';
-import { TagCloud } from '../Common/TagCloud';
+import { normalizeErrorType } from '../Common/ErrorTypeBadge';
 import { SolutionPreview } from './SolutionPreview';
 import { SolutionStats } from './SolutionStats';
+import { DashButton } from '@/components/dashboard-ui/DashButton';
 
 export interface SolutionCardProps {
   solution: Solution;
   onView: (solution: Solution) => void;
   onDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
-  theme: ThemeMode;
   showPreview?: boolean;
+}
+
+function formatErrorTypeLabel(type?: string) {
+  const normalized = normalizeErrorType(type);
+  if (normalized === 'ui_ux') return 'UI/UX';
+  if (normalized === 'ops_infra') return 'Ops/Infra';
+  if (normalized === 'build_ci') return 'Build/CI';
+  if (normalized === 'install_setup') return 'Install/Setup';
+  if (normalized === 'question_support') return 'Support';
+  if (normalized === 'api_integration') return 'API';
+  if (normalized === 'docs_request') return 'Docs';
+  return normalized
+    .split('_')
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
 }
 
 export const SolutionCard: React.FC<SolutionCardProps> = ({
@@ -22,11 +35,9 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   onView,
   onDelete,
   onTogglePublic,
-  theme,
   showPreview = true,
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const isDark = theme === 'dark';
   const errorPreview = solution.errorMessage || solution.preview;
 
   const handleDelete = () => {
@@ -51,43 +62,34 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
 
   return (
     <div
-      className={`
-        p-4 rounded-xl border transition-all duration-200
-        ${isDark
-          ? 'bg-slate-900/80 border-slate-800 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5'
-          : 'bg-white border-slate-100 hover:border-emerald-200 hover:shadow-md'
-        }
-        hover:-translate-y-0.5
-      `}
+      className={[
+        'p-4 rounded-xl border border-default bg-surface transition-colors',
+        'hover:bg-[hsl(var(--dash-fg)/0.02)]',
+      ].join(' ')}
     >
-      {/* Header: Error Type & Visibility */}
-      <div className="flex items-center justify-between mb-3">
-        <ErrorTypeBadge type={solution.errorType} size="sm" theme={theme} />
-        {solution.isPublic !== undefined && (
-          <div className="flex items-center gap-1">
-            {solution.isPublic ? (
-              <Unlock size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
-            ) : (
-              <Lock size={14} className={isDark ? 'text-slate-500' : 'text-slate-400'} />
-            )}
-          </div>
-        )}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <span className="inline-flex items-center rounded-full border border-default bg-alternative px-2 py-0.5 text-xs text-foreground-light">
+          {formatErrorTypeLabel(solution.errorType)}
+        </span>
+        {solution.isPublic !== undefined ? (
+          <span className="inline-flex items-center gap-1 text-foreground-light">
+            {solution.isPublic ? <Unlock size={14} /> : <Lock size={14} />}
+          </span>
+        ) : null}
       </div>
 
       {/* Title */}
-      <h3
-        className={`
-          font-semibold text-base mb-1 cursor-pointer transition-colors
-          ${isDark ? 'text-slate-100 hover:text-emerald-400' : 'text-slate-900 hover:text-emerald-600'}
-        `}
+      <button
+        type="button"
+        className="text-left font-medium text-base text-foreground hover:text-[hsl(var(--dash-brand))] transition-colors"
         onClick={() => onView(solution)}
       >
         {truncateText(solution.title || 'Untitled Solution', 60)}
-      </h3>
+      </button>
 
       {/* Error Message Preview */}
       {errorPreview && (
-        <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className="text-sm mb-3 line-clamp-2 text-foreground-light">
           {truncateText(errorPreview, 120)}
         </p>
       )}
@@ -99,34 +101,37 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
             content={solution.solution}
             maxLines={3}
             expandable={false}
-            theme={theme}
           />
         </div>
       )}
 
       {/* Tags */}
-      <div className="mb-3">
-        <TagCloud tags={solution.tags} maxVisible={3} size="sm" theme={theme} />
-      </div>
+      {solution.tags?.length ? (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          {solution.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center rounded-md border border-default bg-alternative px-2 py-0.5 text-xs text-foreground-light"
+            >
+              {tag}
+            </span>
+          ))}
+          {solution.tags.length > 3 ? (
+            <span className="text-xs text-foreground-light">+{solution.tags.length - 3}</span>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onView(solution)}
-        >
+        <DashButton variant="default" size="sm" onClick={() => onView(solution)}>
           <Eye size={14} />
-          <span className="ml-1">View</span>
-        </Button>
-        <Button
-          variant={showConfirmDelete ? 'danger' : 'ghost'}
-          size="sm"
-          onClick={handleDelete}
-        >
+          <span>View</span>
+        </DashButton>
+        <DashButton variant={showConfirmDelete ? 'danger' : 'ghost'} size="sm" onClick={handleDelete}>
           <Trash2 size={14} />
-          <span className="ml-1">{showConfirmDelete ? 'Confirm?' : 'Delete'}</span>
-        </Button>
+          <span>{showConfirmDelete ? 'Confirm?' : 'Delete'}</span>
+        </DashButton>
       </div>
 
       {/* Stats */}
@@ -136,16 +141,12 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         upvotes={solution.upvotes}
         downvotes={solution.downvotes}
         apiKeyName={solution.apiKeyName}
-        theme={theme}
       />
 
       {/* Public/Private Toggle */}
       {onTogglePublic && solution.isPublic !== undefined && (
-        <div className={`
-          flex items-center justify-between pt-3 mt-3 border-t text-xs
-          ${isDark ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'}
-        `}>
-          <span>{solution.isPublic ? 'Public' : 'Private'}</span>
+        <div className="flex items-center justify-between pt-3 mt-3 border-t border-default text-xs text-foreground-light">
+          <span className="text-foreground-light">{solution.isPublic ? 'Public' : 'Private'}</span>
           <Toggle
             checked={solution.isPublic}
             onChange={handleTogglePublic}

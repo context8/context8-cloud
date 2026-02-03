@@ -1,6 +1,5 @@
 import React from 'react';
 import { Calendar, Eye, ThumbsUp, ThumbsDown, Key } from 'lucide-react';
-import { ThemeMode } from '../../types';
 
 interface SolutionStatsProps {
   createdAt?: string;
@@ -9,7 +8,6 @@ interface SolutionStatsProps {
   downvotes?: number;
   apiKeyName?: string;
   compact?: boolean;
-  theme: ThemeMode;
 }
 
 const formatDate = (dateString?: string): string => {
@@ -29,10 +27,7 @@ export const SolutionStats: React.FC<SolutionStatsProps> = ({
   downvotes,
   apiKeyName,
   compact = false,
-  theme,
 }) => {
-  const isDark = theme === 'dark';
-
   const statItems = [
     { icon: Calendar, value: formatDate(createdAt), show: true },
     { icon: Eye, value: views?.toString(), show: views !== undefined },
@@ -43,7 +38,7 @@ export const SolutionStats: React.FC<SolutionStatsProps> = ({
 
   if (compact) {
     return (
-      <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <div className="flex items-center gap-3 text-xs text-foreground-light">
         {statItems.map((item, index) => (
           <span key={index} className="flex items-center gap-1">
             <item.icon size={12} />
@@ -55,12 +50,7 @@ export const SolutionStats: React.FC<SolutionStatsProps> = ({
   }
 
   return (
-    <div
-      className={`
-        flex items-center gap-4 pt-3 mt-3 border-t text-xs
-        ${isDark ? 'border-slate-800 text-slate-500' : 'border-slate-100 text-slate-400'}
-      `}
-    >
+    <div className="flex items-center gap-4 border-t border-default pt-3 mt-3 text-xs text-foreground-light">
       {statItems.map((item, index) => (
         <div key={index} className="flex items-center gap-1.5">
           <item.icon size={12} />

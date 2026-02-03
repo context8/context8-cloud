@@ -1,25 +1,21 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles } from 'lucide-react';
+import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { SolutionCard } from '@/components/Dashboard/SolutionCard';
 import { SolutionListItem } from '@/components/Dashboard/SolutionListItem';
 import { SolutionCardSkeleton } from '@/components/Dashboard/SolutionCardSkeleton';
 import { SolutionForm, SolutionFormData } from '@/components/Dashboard/SolutionForm';
-import { Button } from '@/components/Common/Button';
-import { Modal } from '@/components/Common/Modal';
-import { SegmentedControl } from '@/components/Common/SegmentedControl';
-import { Dropdown } from '@/components/Common/Dropdown';
 import { getErrorTypeOptions, normalizeErrorType } from '@/components/Common/ErrorTypeBadge';
-import { Pagination } from '@/components/Common/Pagination';
 import { useSolutions } from '@/hooks/useSolutions';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Common/Toast';
-import type { SearchResult, Solution, ThemeMode } from '@/types';
+import { DashButton } from '@/components/dashboard-ui/DashButton';
+import { DashModal } from '@/components/dashboard-ui/DashModal';
+import type { SearchResult, Solution } from '@/types';
 
 export interface SolutionsViewProps {
   token: string | null;
   apiKey: string | null;
-  theme: ThemeMode;
   autoOpenCreate?: boolean;
   onAutoOpenCreateHandled?: () => void;
 }
@@ -27,7 +23,6 @@ export interface SolutionsViewProps {
 export const SolutionsView: React.FC<SolutionsViewProps> = ({
   token,
   apiKey,
-  theme,
   autoOpenCreate,
   onAutoOpenCreateHandled,
 }) => {
@@ -39,8 +34,6 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-
-  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (!autoOpenCreate) return;
@@ -203,70 +196,59 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
   ];
 
   const hasActiveFilters = publicFilter !== 'all' || errorTypeFilter || searchQuery;
+  const canUseVisibilityFilter = !(isSearchMode && !searchHasVisibility);
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
+  const startItem = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+  const endItem = Math.min(pagination.page * pagination.pageSize, pagination.total);
 
   return (
     <div className="space-y-6">
       <ToastContainer toasts={toasts} onClose={dismiss} />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
-            Solutions
-          </h2>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            Manage your error solutions
-          </p>
-          {/* Stats */}
-          <div className={`flex items-center gap-3 mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            <span className={`px-2 py-0.5 rounded ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
-              {stats.total} Total
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Solutions</h2>
+          <p className="mt-1 text-sm text-foreground-light">Save, search, and manage your fixes.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-foreground-light">
+            <span className="rounded-full border border-default bg-surface px-2 py-1">
+              {stats.total} total
             </span>
-            <span className={`px-2 py-0.5 rounded ${isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
-              {stats.publicCount} Public
+            <span className="rounded-full border border-default bg-surface px-2 py-1">
+              {stats.publicCount} public
             </span>
-            <span className={`px-2 py-0.5 rounded ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
-              {stats.privateCount} Private
+            <span className="rounded-full border border-default bg-surface px-2 py-1">
+              {stats.privateCount} private
             </span>
           </div>
         </div>
-        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-          <Plus size={18} />
-          <span className="ml-2">New Solution</span>
-        </Button>
+        <DashButton variant="primary" onClick={() => setShowCreateModal(true)}>
+          <Plus size={16} />
+          <span>New solution</span>
+        </DashButton>
       </div>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search
-          size={18}
-          className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-        />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-light" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search solutions..."
-          className={`
-            w-full pl-10 pr-10 py-3 rounded-xl border text-sm transition-colors
-            ${isDark
-              ? 'bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
-              : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-400'
-            }
-            focus:outline-none focus:ring-2 focus:ring-emerald-500/20
-          `}
+          className="dash-input h-10 w-full pl-10 pr-10 text-sm"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-foreground-light hover:bg-[hsl(var(--dash-fg)/0.04)] hover:text-foreground"
+            aria-label="Clear search"
           >
-            <X size={16} className={isDark ? 'text-slate-500' : 'text-slate-400'} />
+            <X size={16} aria-hidden="true" />
           </button>
         )}
         {isSearching && (
-          <div className={`absolute right-10 top-1/2 -translate-y-1/2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 text-[hsl(var(--dash-brand))]">
             <Sparkles size={16} className="animate-pulse" />
           </div>
         )}
@@ -274,68 +256,85 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl
-          options={[
-            { value: 'all', label: 'All', count: stats.total },
-            { value: 'public', label: 'Public', count: stats.publicCount },
-            { value: 'private', label: 'Private', count: stats.privateCount },
-          ]}
-          value={publicFilter}
-          onChange={(v) => setPublicFilter(v as typeof publicFilter)}
-          disabled={isSearchMode && !searchHasVisibility}
-          theme={theme}
-        />
+        <div
+          className={[
+            'inline-flex items-center rounded-full border border-default bg-surface p-1',
+            canUseVisibilityFilter ? '' : 'opacity-60',
+          ].join(' ')}
+          aria-disabled={!canUseVisibilityFilter}
+        >
+          {(['all', 'public', 'private'] as const).map((value) => {
+            const active = publicFilter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                disabled={!canUseVisibilityFilter}
+                onClick={() => setPublicFilter(value)}
+                className={[
+                  'h-8 rounded-full px-3 text-xs transition-colors',
+                  active ? 'bg-alternative text-foreground' : 'text-foreground-light hover:text-foreground',
+                ].join(' ')}
+              >
+                {value === 'all' ? 'All' : value === 'public' ? 'Public' : 'Private'}
+              </button>
+            );
+          })}
+        </div>
 
-        <Dropdown
-          value={errorTypeFilter}
-          options={errorTypeOptions}
-          onChange={setErrorTypeFilter}
-          placeholder="Error Type"
-          disabled={false}
-          theme={theme}
-        />
+        <select
+          value={errorTypeFilter ?? ''}
+          onChange={(e) => setErrorTypeFilter(e.target.value || null)}
+          className="dash-input h-8 w-auto text-xs"
+        >
+          <option value="">All error types</option>
+          {errorTypeOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
-        <Dropdown
+        <select
           value={sortBy}
-          options={sortOptions}
-          onChange={(v) => setSortBy(v || 'recent')}
-          placeholder="Sort by"
-          allowClear={false}
-          disabled={false}
-          theme={theme}
-        />
+          onChange={(e) => setSortBy(e.target.value)}
+          className="dash-input h-8 w-auto text-xs"
+        >
+          {sortOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
         <div className="flex-1" />
 
-        {/* Layout Toggle */}
-        <div className={`flex rounded-lg p-1 ${isDark ? 'bg-slate-900' : 'bg-slate-100'}`}>
+        <div className="inline-flex items-center rounded-lg border border-default bg-surface p-1">
           <button
             type="button"
             onClick={() => setLayout('grid')}
-            className={`
-              p-2 rounded-md transition-colors
-              ${layout === 'grid'
-                ? isDark ? 'bg-slate-800 text-emerald-400' : 'bg-white text-emerald-600 shadow-sm'
-                : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
-              }
-            `}
-            title="Grid view"
+            className={[
+              'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+              layout === 'grid'
+                ? 'bg-alternative text-foreground'
+                : 'text-foreground-light hover:bg-[hsl(var(--dash-fg)/0.04)] hover:text-foreground',
+            ].join(' ')}
+            aria-label="Grid view"
           >
-            <LayoutGrid size={16} />
+            <LayoutGrid size={16} aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={() => setLayout('list')}
-            className={`
-              p-2 rounded-md transition-colors
-              ${layout === 'list'
-                ? isDark ? 'bg-slate-800 text-emerald-400' : 'bg-white text-emerald-600 shadow-sm'
-                : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
-              }
-            `}
-            title="List view"
+            className={[
+              'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+              layout === 'list'
+                ? 'bg-alternative text-foreground'
+                : 'text-foreground-light hover:bg-[hsl(var(--dash-fg)/0.04)] hover:text-foreground',
+            ].join(' ')}
+            aria-label="List view"
           >
-            <List size={16} />
+            <List size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -345,17 +344,17 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
         // Loading skeletons
         <div className={layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-0'}>
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <SolutionCardSkeleton key={i} theme={theme} layout={layout} />
+            <SolutionCardSkeleton key={i} layout={layout} />
           ))}
         </div>
       ) : displaySolutions.length === 0 ? (
         // Empty state
-        <div className={`text-center py-16 rounded-xl border ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
-          <FileX size={56} className={`mx-auto mb-4 ${isDark ? 'text-slate-700' : 'text-slate-300'}`} />
-          <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+        <div className="text-center py-16 rounded-xl border border-default bg-surface">
+          <FileX size={56} className="mx-auto mb-4 text-foreground-light" />
+          <h3 className="text-lg font-semibold mb-2 text-foreground">
             {searchQuery ? 'No matching solutions' : 'No solutions found'}
           </h3>
-          <p className={`mb-6 max-w-md mx-auto ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+          <p className="mb-6 max-w-md mx-auto text-foreground-light">
             {searchQuery
               ? 'Try adjusting your search query or filters'
               : hasActiveFilters
@@ -364,14 +363,14 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
           </p>
           <div className="flex items-center justify-center gap-3">
             {hasActiveFilters && (
-              <Button variant="secondary" onClick={handleClearFilters}>
+              <DashButton variant="default" onClick={handleClearFilters}>
                 Clear Filters
-              </Button>
+              </DashButton>
             )}
-            <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-              <Plus size={18} />
-              <span className="ml-2">Create Solution</span>
-            </Button>
+            <DashButton variant="primary" onClick={() => setShowCreateModal(true)}>
+              <Plus size={16} />
+              <span>Create solution</span>
+            </DashButton>
           </div>
         </div>
       ) : layout === 'grid' ? (
@@ -385,13 +384,12 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
               onDelete={handleDelete}
               onTogglePublic={searchResults ? undefined : handleTogglePublic}
               showPreview
-              theme={theme}
             />
           ))}
         </div>
       ) : (
         // List view
-        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+        <div className="rounded-xl border border-default overflow-hidden bg-surface">
           {displaySolutions.map((solution) => (
             <SolutionListItem
               key={solution.id}
@@ -399,7 +397,6 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
               onView={handleView}
               onDelete={handleDelete}
               onTogglePublic={searchResults ? undefined : handleTogglePublic}
-              theme={theme}
             />
           ))}
         </div>
@@ -407,36 +404,83 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
 
       {/* Search results indicator */}
       {searchResults && (
-        <div className={`text-center text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <div className="text-center text-sm text-foreground-light">
           Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{debouncedQuery}"
         </div>
       )}
 
       {/* Pagination - only show when not in search mode */}
       {!searchResults && pagination.total > 0 && (
-        <Pagination
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          total={pagination.total}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          theme={theme}
-        />
+        <div className="flex flex-col gap-3 border-t border-default pt-4 sm:flex-row sm:items-center sm:justify-between text-sm text-foreground-light">
+          <div>
+            Showing <span className="text-foreground">{startItem}</span>–<span className="text-foreground">{endItem}</span> of{' '}
+            <span className="text-foreground">{pagination.total.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={pagination.pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="dash-input h-8 w-auto text-xs"
+            >
+              {[25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size} / page
+                </option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-1">
+              <DashButton
+                size="sm"
+                variant="ghost"
+                disabled={pagination.page <= 1}
+                onClick={() => setPage(1)}
+                aria-label="First page"
+              >
+                <ChevronsLeft size={14} />
+              </DashButton>
+              <DashButton
+                size="sm"
+                variant="ghost"
+                disabled={pagination.page <= 1}
+                onClick={() => setPage(pagination.page - 1)}
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={14} />
+              </DashButton>
+              <span className="px-2 text-xs">
+                {pagination.page} / {totalPages}
+              </span>
+              <DashButton
+                size="sm"
+                variant="ghost"
+                disabled={pagination.page >= totalPages}
+                onClick={() => setPage(pagination.page + 1)}
+                aria-label="Next page"
+              >
+                <ChevronRight size={14} />
+              </DashButton>
+              <DashButton
+                size="sm"
+                variant="ghost"
+                disabled={pagination.page >= totalPages}
+                onClick={() => setPage(totalPages)}
+                aria-label="Last page"
+              >
+                <ChevronsRight size={14} />
+              </DashButton>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Create Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title="Create New Solution"
-        size="xl"
-      >
+      <DashModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create new solution" size="xl">
         <SolutionForm
           onSubmit={handleCreate}
           onCancel={() => setShowCreateModal(false)}
-          theme={theme}
         />
-      </Modal>
+      </DashModal>
     </div>
   );
 };

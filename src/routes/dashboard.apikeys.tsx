@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { ApiKeysView } from '@/pages/Dashboard/views/ApiKeysView';
-import { useTheme } from '@/state/theme';
 import { useSession } from '@/state/session';
 
 export const Route = createFileRoute('/dashboard/apikeys')({
@@ -9,9 +8,7 @@ export const Route = createFileRoute('/dashboard/apikeys')({
 });
 
 function ApiKeysRoute() {
-  const { theme } = useTheme();
   const { session } = useSession();
 
-  return <ApiKeysView token={session?.token ?? null} theme={theme} />;
+  return <ApiKeysView token={session?.token ?? null} />;
 }
-

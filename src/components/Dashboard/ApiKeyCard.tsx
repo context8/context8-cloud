@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Copy, Trash2, Key, Check, Lock, Unlock, Globe, EyeOff } from 'lucide-react';
 import { ApiKey } from '../../types';
-import { Button } from '../Common/Button';
 import { Toggle } from '../Common/Toggle';
+import { DashButton } from '@/components/dashboard-ui/DashButton';
 
 export interface ApiKeyStats {
   publicCount: number;
@@ -14,7 +14,6 @@ export interface ApiKeyCardProps {
   onRequestDelete: (id: string) => void;
   onTogglePublic?: (id: string, isPublic: boolean) => void;
   onCopy?: () => void;
-  theme: 'light' | 'dark';
   stats?: ApiKeyStats;
 }
 
@@ -23,7 +22,6 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
   onRequestDelete,
   onTogglePublic,
   onCopy,
-  theme,
   stats,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -47,92 +45,56 @@ export const ApiKeyCard: React.FC<ApiKeyCardProps> = ({
 
   return (
     <div
-      className={`
-        p-4 rounded-lg border transition-shadow duration-300
-        ${theme === 'dark'
-          ? 'bg-slate-900 border-slate-700 hover:shadow-xl'
-          : 'bg-white border-gray-200 hover:shadow-xl'
-        }
-      `}
+      className="p-4 rounded-xl border border-default bg-surface transition-colors hover:bg-[hsl(var(--dash-fg)/0.02)]"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Key size={18} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
-          <h3 className={`font-semibold ${theme === 'dark' ? 'text-slate-100' : 'text-gray-900'}`}>
-            {apiKey.name}
-          </h3>
+          <Key size={18} className="text-[hsl(var(--dash-brand))]" />
+          <h3 className="font-semibold text-foreground">{apiKey.name}</h3>
         </div>
         {apiKey.isPublic !== undefined && (
           <div className="flex items-center gap-1">
-            {apiKey.isPublic ? (
-              <Unlock size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
-            ) : (
-              <Lock size={14} className={theme === 'dark' ? 'text-slate-400' : 'text-gray-500'} />
-            )}
+            {apiKey.isPublic ? <Unlock size={14} className="text-foreground-light" /> : <Lock size={14} className="text-foreground-light" />}
           </div>
         )}
       </div>
 
-      <div className={`mb-1 p-2 rounded font-mono text-sm break-all ${
-        theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-gray-50 text-gray-700'
-      }`}>
+      <div className="mb-1 rounded-lg border border-default bg-alternative p-2 font-mono text-sm break-all text-foreground-light">
         Key ID: {apiKey.id}
       </div>
-      <p className={`mb-3 text-xs ${
-        theme === 'dark' ? 'text-slate-400' : 'text-gray-500'
-      }`}>
+      <p className="mb-3 text-xs text-foreground-light">
         API key values are shown only once at creation.
       </p>
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleCopy}
-        >
+        <DashButton variant="default" size="sm" onClick={handleCopy}>
           {copied ? <Check size={14} /> : <Copy size={14} />}
-          <span className="ml-1">{copied ? 'Copied ID!' : 'Copy ID'}</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDelete}
-        >
+          <span>{copied ? 'Copied ID!' : 'Copy ID'}</span>
+        </DashButton>
+        <DashButton variant="ghost" size="sm" onClick={handleDelete}>
           <Trash2 size={14} />
-          <span className="ml-1">Delete</span>
-        </Button>
+          <span>Delete</span>
+        </DashButton>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div className={`flex items-center gap-3 mb-3 py-2 px-3 rounded-lg ${
-          theme === 'dark' ? 'bg-slate-800/50' : 'bg-gray-50'
-        }`}>
+        <div className="flex items-center gap-3 mb-3 rounded-lg border border-default bg-alternative py-2 px-3">
           <div className="flex items-center gap-1.5">
-            <Globe size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
-            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
-              {stats.publicCount}
-            </span>
-            <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'}`}>
-              public
-            </span>
+            <Globe size={14} className="text-[hsl(var(--dash-brand))]" />
+            <span className="text-sm font-medium text-foreground">{stats.publicCount}</span>
+            <span className="text-xs text-foreground-light">public</span>
           </div>
-          <div className={`w-px h-4 ${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-300'}`} />
+          <div className="w-px h-4 bg-[hsl(var(--dash-border))]" />
           <div className="flex items-center gap-1.5">
-            <EyeOff size={14} className={theme === 'dark' ? 'text-slate-400' : 'text-gray-500'} />
-            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>
-              {stats.privateCount}
-            </span>
-            <span className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'}`}>
-              private
-            </span>
+            <EyeOff size={14} className="text-foreground-light" />
+            <span className="text-sm font-medium text-foreground">{stats.privateCount}</span>
+            <span className="text-xs text-foreground-light">private</span>
           </div>
         </div>
       )}
 
-      <div className={`text-xs pt-3 border-t ${
-        theme === 'dark' ? 'border-slate-700 text-slate-400' : 'border-gray-200 text-gray-500'
-      }`}>
+      <div className="text-xs pt-3 border-t border-default text-foreground-light">
         <div className="flex justify-between items-center mb-2">
           <span>Created: {apiKey.createdAt ? new Date(apiKey.createdAt).toLocaleDateString() : 'Unknown'}</span>
         </div>

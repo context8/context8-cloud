@@ -1,25 +1,18 @@
 import React from 'react';
-import { ThemeMode } from '../../types';
 
 interface SolutionCardSkeletonProps {
-  theme: ThemeMode;
   layout?: 'grid' | 'list';
 }
 
 export const SolutionCardSkeleton: React.FC<SolutionCardSkeletonProps> = ({
-  theme,
   layout = 'grid',
 }) => {
-  const isDark = theme === 'dark';
-  const shimmerClass = isDark ? 'bg-slate-700' : 'bg-slate-200';
+  const shimmerClass = 'bg-[hsl(var(--dash-fg)/0.08)]';
 
   if (layout === 'list') {
     return (
       <div
-        className={`
-          flex items-center gap-4 p-4 animate-pulse
-          ${isDark ? 'border-b border-slate-800' : 'border-b border-slate-100'}
-        `}
+        className="flex items-center gap-4 border-b border-default p-4 animate-pulse"
       >
         <div className={`h-6 w-20 rounded ${shimmerClass}`} />
         <div className={`h-5 w-48 rounded ${shimmerClass}`} />
@@ -32,10 +25,7 @@ export const SolutionCardSkeleton: React.FC<SolutionCardSkeletonProps> = ({
 
   return (
     <div
-      className={`
-        p-4 rounded-xl border animate-pulse
-        ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-100'}
-      `}
+      className="p-4 rounded-xl border border-default bg-surface animate-pulse"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
@@ -51,7 +41,7 @@ export const SolutionCardSkeleton: React.FC<SolutionCardSkeletonProps> = ({
       <div className={`h-4 w-2/3 rounded mb-4 ${shimmerClass}`} />
 
       {/* Preview box */}
-      <div className={`h-20 w-full rounded-lg mb-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`} />
+      <div className="h-20 w-full rounded-lg mb-4 bg-alternative border border-default" />
 
       {/* Tags */}
       <div className="flex gap-2 mb-4">
@@ -61,7 +51,7 @@ export const SolutionCardSkeleton: React.FC<SolutionCardSkeletonProps> = ({
       </div>
 
       {/* Stats */}
-      <div className={`pt-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+      <div className="pt-3 border-t border-default">
         <div className="flex gap-4">
           <div className={`h-4 w-20 rounded ${shimmerClass}`} />
           <div className={`h-4 w-16 rounded ${shimmerClass}`} />
