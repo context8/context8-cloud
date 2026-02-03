@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AppShell } from '@/components/AppShell';
 import { Login } from '@/pages/Login';
-import { AuthShell } from '@/pages/shells/AuthShell';
+import { SignInShell } from '@/pages/shells/SignInShell';
 
 export const Route = createFileRoute('/login')({
   ssr: false,
@@ -11,9 +11,9 @@ export const Route = createFileRoute('/login')({
 function LoginRoute() {
   return (
     <AppShell hideChrome>
-      <AuthShell>
+      <SignInShell>
         <Login />
-      </AuthShell>
+      </SignInShell>
     </AppShell>
   );
 }
