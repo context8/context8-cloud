@@ -276,3 +276,4 @@ tailwindcss + shadcn
 42. Hero 输入框统一 x.ai 结构：外层 `bg-gradient-to-tr p-px from-primary/5 to-primary/20 rounded-3xl`，内层 textarea `h-[120px] rounded-3xl pl-4 pr-16 py-5 resize-none`，右下角放圆形 submit 按钮。
 43. 主题切换 `<html>` 为单一真相：ThemeProvider 必须同步 `.dark` class + `data-theme` + `color-scheme`；页面/组件禁止再写 `theme === 'dark' ? ... : ...` 的大段分支，改用 token。
 44. 反抄袭底线：不直接复制第三方网站的图片/图标/大段 SVG path；允许复刻结构与风格，但资产必须自制或来自本项目许可资源。
+45. Landing 页面如需复刻外部站点风格：样式必须作用域隔离（例如仅在 `.sb` wrapper 下生效），组件/文件命名保持中性（不要出现外部品牌名）。
