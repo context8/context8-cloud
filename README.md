@@ -1,50 +1,51 @@
-# Context8 Cloud
+# Context8 Cloud Frontend (Vite)
 
-FastAPI + PostgreSQL backend (and a simple React/Vite frontend) for Context8 cloud mode.
+This repository contains the Vite + React frontend for Context8 Cloud.
 
-## Features
-- Email code login (resend) and JWT sessions
-- API key issuance (`/apikeys`) for email-verified users (hashed with SHA256 in DB)
-- Solution CRUD + semantic/keyword search (per-API-key isolation with public sharing)
-- Optional embedding + vector search (pgvector) with fallback keyword search
-- Modal-friendly deployment (`modal deploy modal_app.py`)
+The backend service is **not** included in this repo. You must provide a compatible API server and point the frontend to it via `VITE_API_BASE`.
 
-## API (essentials)
-- `POST /auth/email/send-code` – send verification code
-- `POST /auth/email/verify-code` – verify code, returns JWT
-- `GET /auth/email/me` – current user info (requires JWT)
-- `POST /apikeys` – create API key (Bearer JWT required; only email-verified users)
-- `GET /apikeys` / `DELETE /apikeys/{id}` – list/revoke keys
-- `PATCH /apikeys/{id}` – update API key public state
-- `POST /solutions` – save solution (requires `Authorization: Bearer <jwt>` or `X-API-Key: <key>`)
-- `GET /solutions/{id}` / `GET /solutions` – fetch/list solutions (per-API-key)
-- `DELETE /solutions/{id}` – delete solution
-- `PATCH /solutions/{id}` – update solution public state
-- `POST /search` – search solutions; `query` must be non-empty (min length 1)
+## Quickstart
+```bash
+cd frontend
+npm ci
+cp .env.local.example .env.local
+npm run dev
+```
 
-Auth rules:
-- Bearer JWT: signed with `JWT_SECRET`/`JWT_ALG`, audience `context8-api`, issuer `context8.com`, email must be verified.
-- API Key: `X-API-Key: <plaintext>` (or `X-API-Keys: k1,k2` for search); hashed (SHA256) in `api_keys.key_hash`, `revoked=false`, user must be `email_verified=true`.
-- Public visibility: `solutions.is_public` makes solutions searchable without credentials; `api_keys.is_public` is the default for new solutions.
+Open `http://localhost:5173`.
 
-## Environment Variables (required/important)
-- `DATABASE_URL` – PostgreSQL (Neon) URL, include `sslmode=require`
-- `JWT_SECRET` – strong secret for JWT signing (do NOT use defaults)
-- `JWT_ALG` – default HS256
-- `RESEND_API_KEY`, `RESEND_FROM` – for email codes (required for login flow)
-- Optional: `API_KEY` (legacy single key), but `/solutions`/`/search` use API Key/JWT above.
+## Configuration
+Set `VITE_API_BASE` to your backend base URL (e.g. `http://localhost:8000`).
 
-## Deployment (Modal)
-1) Set env vars (especially `DATABASE_URL`, `JWT_SECRET`, `RESEND_*`).
-2) `pip install -r requirements.txt`
-3) `modal deploy modal_app.py`
-4) Use the returned URL as `CONTEXT8_REMOTE_URL` in context8-mcp; create API Keys via `/apikeys`.
+If the backend is not running (or the URL is wrong), the UI will still render, but login / API key management / save / search will fail.
 
-## Frontend (optional)
-- Vite app in `frontend/` for login, dashboard, and API key management.
-- Configure API base URL (e.g., Modal URL or your reverse proxy) via `.env`.
+## Backend dependency (high level API contract)
+The frontend expects a backend that supports at least these routes:
 
-## Notes
-- `X-API-Key` headers must reach the backend (ensure proxies keep custom headers).
-- `query` in `/search` must be non-empty; otherwise 422.
-- API Keys must be created via `/apikeys` by an email-verified user; random strings won’t work. 
+**Auth**
+- `POST /auth/email/send-code`
+- `POST /auth/email/verify-code`
+
+**API keys**
+- `GET /apikeys`
+- `POST /apikeys`
+- `PATCH /apikeys/{id}`
+- `DELETE /apikeys/{id}`
+- `GET /apikeys/stats`
+
+**Solutions & search**
+- `GET /solutions`
+- `POST /solutions`
+- `GET /solutions/{id}`
+- `PATCH /solutions/{id}`
+- `DELETE /solutions/{id}`
+- `GET /solutions/{id}/es` (optional)
+- `GET /solutions/count`
+- `POST /search`
+- `POST /solutions/{id}/vote`
+- `DELETE /solutions/{id}/vote`
+
+**Stats**
+- `GET /stats/solutions`
+
+Requests are sent with either `Authorization: Bearer <jwt>` or `X-API-Key: <key>` (and `X-API-Keys: k1,k2,...` for multi-key search), depending on the feature.
