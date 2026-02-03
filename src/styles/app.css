@@ -55,6 +55,95 @@ body {
   }
 }
 
+/* Landing page style scope (homepage only).
+   Keep everything under `.sb` to avoid leaking styles to other routes. */
+@layer components {
+  .sb {
+    background-color: hsl(var(--sb-bg));
+    color: hsl(var(--sb-fg));
+  }
+
+  html.dark .sb {
+    --sb-bg: 0 0% 7%;
+    --sb-fg: 0 0% 98%;
+    --sb-fg-light: 0 0% 71%;
+    --sb-border: 0 0% 18%;
+    --sb-border-2: 0 0% 21%;
+    --sb-alt: 0 0% 14%;
+    --sb-brand: 153 60% 53%;
+    --sb-brand-bg: 155 100% 19%;
+  }
+
+  html:not(.dark) .sb {
+    --sb-bg: 0 0% 100%;
+    --sb-fg: 0 0% 6%;
+    --sb-fg-light: 0 0% 40%;
+    --sb-border: 0 0% 90%;
+    --sb-border-2: 0 0% 83%;
+    --sb-alt: 0 0% 97%;
+    --sb-brand: 155 100% 19%;
+    --sb-brand-bg: 155 100% 19%;
+  }
+
+  .sb .text-foreground {
+    color: hsl(var(--sb-fg));
+  }
+  .sb .text-foreground-light {
+    color: hsl(var(--sb-fg-light));
+  }
+  .sb .text-brand {
+    color: hsl(var(--sb-brand));
+  }
+  .sb .text-brand-link {
+    color: hsl(var(--sb-brand));
+  }
+
+  .sb .bg-alternative {
+    background-color: hsl(var(--sb-alt));
+  }
+  .sb .bg-muted {
+    background-color: hsl(var(--sb-alt));
+  }
+  .sb .bg-selection {
+    background-color: hsl(var(--sb-alt));
+  }
+
+  .sb .border-default {
+    border-color: hsl(var(--sb-border));
+  }
+  .sb .border-strong {
+    border-color: hsl(var(--sb-border-2));
+  }
+  .sb .border-stronger {
+    border-color: hsl(var(--sb-border-2));
+  }
+}
+
+@layer utilities {
+  @keyframes sb-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: sb-fade-in 400ms ease-out both;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .font-regular {
+    font-weight: 400;
+  }
+}
+
 /* Custom scrollbar for code blocks */
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
