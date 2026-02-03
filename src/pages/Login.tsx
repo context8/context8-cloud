@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { API_BASE } from '../constants';
-import { Mail, ArrowRight, Check, AlertCircle, Clock, Rocket } from 'lucide-react';
+import { ArrowRight, Check, AlertCircle, Clock, Rocket } from 'lucide-react';
 import { useSession } from '@/state/session';
 
 export const Login: React.FC = () => {
@@ -96,190 +96,139 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Coming Soon Banner */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center gap-3">
-          <div className="p-2 bg-amber-100 rounded-lg">
-            <Rocket size={20} className="text-amber-600" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-amber-800">Coming Soon</p>
-            <p className="text-xs text-amber-600">Registration is currently closed. Existing users only.</p>
-          </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sign in</h1>
+        <p className="mt-2 text-sm text-foreground-light">
+          {step === 'email' ? 'Enter your email to receive a one-time verification code.' : 'Enter the 6-digit code we sent to your email.'}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
+        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.6)]">
+          <Rocket className="h-4 w-4 text-brand" aria-hidden="true" />
         </div>
-
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-900 mb-2">
-            Sign In to Context8
-          </h1>
-          <p className="text-gray-500">
-            {step === 'email'
-              ? 'Enter your registered email to sign in'
-              : 'Enter the verification code sent to your email'}
-          </p>
-        </div>
-
-        {/* Main Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3">
-              <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          {/* Success Message */}
-          {success && (
-            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-lg flex items-start gap-3">
-              <Check size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-emerald-800">{success}</p>
-            </div>
-          )}
-
-          {/* Email Step */}
-          {step === 'email' && (
-            <form onSubmit={handleSendCode} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
-                >
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    required
-                    disabled={loading || countdown > 0}
-                    className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !email || countdown > 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Sending...
-                  </>
-                ) : countdown > 0 ? (
-                  <>
-                    <Clock size={18} />
-                    Wait {countdown}s
-                  </>
-                ) : (
-                  <>
-                    Continue
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
-
-          {/* Code Step */}
-          {step === 'code' && (
-            <form onSubmit={handleVerifyCode} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="code"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
-                >
-                  Verification Code
-                </label>
-                <input
-                  id="code"
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-center text-2xl font-mono tracking-widest disabled:bg-gray-50 disabled:cursor-not-allowed"
-                />
-                <p className="mt-2 text-xs text-gray-500 text-center">
-                  Enter the 6-digit code sent to <strong>{email}</strong>
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || code.length !== 6}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    Verify & Sign In
-                    <Check size={18} />
-                  </>
-                )}
-              </button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={loading || countdown > 0}
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {countdown > 0 ? `Resend code in ${countdown}s` : "Didn't receive code? Resend"}
-                </button>
-                <span className="mx-3 text-gray-300">•</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('email');
-                    setCode('');
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
-                >
-                  Change email
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>
-            By continuing, you agree to our{' '}
-            <a href="#" className="text-emerald-600 hover:text-emerald-700 underline">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#" className="text-emerald-600 hover:text-emerald-700 underline">
-              Privacy Policy
-            </a>
-          </p>
-          <p className="mt-3 text-xs text-gray-400">
-            New user? Registration opens soon.
-          </p>
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-foreground">Existing users only</div>
+          <p className="mt-1 text-sm text-foreground-light">Registration is currently closed.</p>
         </div>
       </div>
+
+      {error ? (
+        <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-[hsl(var(--sb-fg-light))]" aria-hidden="true" />
+          <p className="text-sm text-foreground">{error}</p>
+        </div>
+      ) : null}
+
+      {success ? (
+        <div className="rounded-lg border border-default bg-[hsl(var(--sb-bg)/0.45)] p-4 flex items-start gap-3">
+          <Check className="mt-0.5 h-4 w-4 text-brand" aria-hidden="true" />
+          <p className="text-sm text-foreground">{success}</p>
+        </div>
+      ) : null}
+
+      {step === 'email' ? (
+        <form onSubmit={handleSendCode} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              disabled={loading || countdown > 0}
+              className="sb-input mt-2"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !email || countdown > 0}
+            className="sb-btn-primary w-full"
+          >
+            {loading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" aria-hidden="true" />
+                Sending
+              </>
+            ) : countdown > 0 ? (
+              <>
+                <Clock className="h-4 w-4" aria-hidden="true" />
+                Wait {countdown}s
+              </>
+            ) : (
+              <>
+                Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </>
+            )}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifyCode} className="space-y-4">
+          <div>
+            <label htmlFor="code" className="block text-sm font-medium text-foreground">
+              Verification code
+            </label>
+            <input
+              id="code"
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              required
+              disabled={loading}
+              className="sb-input mt-2 h-14 px-4 text-center text-xl font-mono tracking-widest"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+            />
+            <p className="mt-2 text-xs text-foreground-light">
+              Sent to <span className="text-foreground">{email}</span>
+            </p>
+          </div>
+
+          <button type="submit" disabled={loading || code.length !== 6} className="sb-btn-primary w-full">
+            {loading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" aria-hidden="true" />
+                Verifying
+              </>
+            ) : (
+              <>
+                Verify <Check className="h-4 w-4" aria-hidden="true" />
+              </>
+            )}
+          </button>
+
+          <div className="flex flex-col gap-2 text-sm">
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={loading || countdown > 0}
+              className="sb-btn-secondary w-full"
+            >
+              {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep('email');
+                setCode('');
+                setError(null);
+                setSuccess(null);
+              }}
+              className="w-full text-foreground-light hover:text-foreground underline underline-offset-4"
+            >
+              Change email
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
