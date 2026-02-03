@@ -267,3 +267,12 @@ tailwindcss + shadcn
 33. 需要模拟 Vercel 构建时使用 `VERCEL=1 bun run build` 触发 Nitro 的 `preset: vercel`。
 34. E2E 浏览器自动化测试默认工具为 `agent-browser`（snapshot refs `@eN` 优先，必须检查 `errors`/`console` 并留 `screenshot` 证据；需要复用/隔离用 `--profile`/`--session`；仅当 `agent-browser` 不可用或能力缺失时回退到 chrome dev mcp）。
 35. 访问外部网站做设计/竞品评审，或遇到 Cloudflare 等拦截时：`agent-browser` 必须走 CDP 模式（先起 Chrome `--remote-debugging-port=9222`，再 `agent-browser connect 9222` 或 `agent-browser --cdp 9222 ...`），不要让 `agent-browser` 自己启动浏览器。
+36. UI 设计基线采用 x.ai 风格：深色为默认主场景，视觉优先用“边框 + 透明度 + 微弱渐变”，避免大面积阴影堆叠。
+37. 颜色系统用 HSL triplet CSS vars：`--background/--primary/--secondary/--border/--accent`（值形如 `0 0% 4%`），Tailwind 必须通过 `bg-background`/`text-primary`/`text-secondary`/`border-border` 及其 `/xx` 透明度变体消费这些 token，禁止散落硬编码色值。
+38. 字体两套：正文/标题 `font-sans`，操作/标签 `font-mono + uppercase + tracking-widest`；标题习惯 `tracking-tight + text-balance`，不要靠粗细/阴影硬撑层级。
+39. 布局固定节奏：容器 `xl:max-w-7xl mx-auto px-4 lg:px-6`；版块间距 `py-16 sm:py-32` + `space-y-16 sm:space-y-32`，别在页面里随意“拍脑袋” spacing。
+40. 组件按钮统一 pill 风格：`rounded-full border font-mono ...`，并通过 `--btn-bg/--btn-border/--btn-hover/--btn-text` 四个 CSS 变量驱动状态（避免分叉写多套 class）。
+41. 卡片交互尽量“干净”：hover 用边框/透明度/角点装饰（desktop 才出现），不要用 `shadow-*` 当作万能视觉分隔。
+42. Hero 输入框统一 x.ai 结构：外层 `bg-gradient-to-tr p-px from-primary/5 to-primary/20 rounded-3xl`，内层 textarea `h-[120px] rounded-3xl pl-4 pr-16 py-5 resize-none`，右下角放圆形 submit 按钮。
+43. 主题切换 `<html>` 为单一真相：ThemeProvider 必须同步 `.dark` class + `data-theme` + `color-scheme`；页面/组件禁止再写 `theme === 'dark' ? ... : ...` 的大段分支，改用 token。
+44. 反抄袭底线：不直接复制第三方网站的图片/图标/大段 SVG path；允许复刻结构与风格，但资产必须自制或来自本项目许可资源。
