@@ -72,6 +72,7 @@ body {
     --sb-alt: 0 0% 14%;
     --sb-brand: 153 60% 53%;
     --sb-brand-bg: 155 100% 19%;
+    --sb-on-brand: 0 0% 98%;
   }
 
   html:not(.dark) .sb {
@@ -83,6 +84,7 @@ body {
     --sb-alt: 0 0% 97%;
     --sb-brand: 155 100% 19%;
     --sb-brand-bg: 155 100% 19%;
+    --sb-on-brand: 0 0% 98%;
   }
 
   .sb .text-foreground {

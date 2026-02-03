@@ -13,7 +13,7 @@ const buttonBase =
   'rounded-md outline-none transition-all outline-0 focus-visible:outline-4 focus-visible:outline-offset-1 border text-sm px-4 py-2 h-[38px]';
 
 const primaryButton =
-  `${buttonBase} bg-[hsl(var(--sb-brand-bg))] text-foreground ` +
+  `${buttonBase} bg-[hsl(var(--sb-brand-bg))] text-[hsl(var(--sb-on-brand))] ` +
   'border-[color:rgba(62,207,142,0.3)] hover:bg-[color:rgba(0,98,57,0.9)]';
 
 const secondaryButton =
