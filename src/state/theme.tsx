@@ -21,6 +21,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
+  }, [theme]);
+
   const setTheme = React.useCallback((next: ThemeMode) => {
     localStorage.setItem(STORAGE_KEY, next);
     setThemeState(next);
@@ -49,4 +56,3 @@ export function useTheme() {
   }
   return ctx;
 }
-
