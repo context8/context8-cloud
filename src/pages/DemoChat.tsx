@@ -41,6 +41,7 @@ export const DemoChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [resetToken, setResetToken] = useState(0);
+  const [prefill, setPrefill] = useState<string>('');
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -67,6 +68,16 @@ export const DemoChat: React.FC = () => {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, status, autoScroll]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get('q') ?? '';
+    const fromStorage = localStorage.getItem('ctx8_demo_prefill') ?? '';
+    const next = (fromQuery || fromStorage).trim();
+    if (!next) return;
+    localStorage.removeItem('ctx8_demo_prefill');
+    setPrefill(next);
+  }, []);
 
   useEffect(() => {
     const el = chatScrollRef.current;
@@ -415,6 +426,7 @@ export const DemoChat: React.FC = () => {
           disabled={status === 'loading'}
           theme={theme}
           resetToken={resetToken}
+          initialValue={prefill}
           deepSearchEnabled={deepSearchEnabled}
           deepThinkingEnabled={deepThinkingEnabled}
           onToggleDeepSearch={() => setDeepSearchEnabled((prev) => !prev)}

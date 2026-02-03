@@ -11,6 +11,7 @@ interface GeminiChatInputProps {
   onToggleDeepSearch?: () => void;
   onToggleDeepThinking?: () => void;
   suggestions?: string[];
+  initialValue?: string;
 }
 
 const defaultSuggestions = [
@@ -30,6 +31,7 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
   onToggleDeepSearch,
   onToggleDeepThinking,
   suggestions,
+  initialValue,
 }) => {
   const [input, setInput] = useState('');
   const displaySuggestions = suggestions && suggestions.length > 0 ? suggestions : defaultSuggestions;
@@ -37,6 +39,12 @@ export const GeminiChatInput: React.FC<GeminiChatInputProps> = ({
   useEffect(() => {
     setInput('');
   }, [resetToken]);
+
+  useEffect(() => {
+    const next = (initialValue ?? '').trim();
+    if (!next) return;
+    setInput((prev) => (prev.trim() ? prev : next));
+  }, [initialValue]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();

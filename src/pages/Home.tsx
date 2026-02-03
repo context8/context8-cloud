@@ -47,6 +47,7 @@ export function Home({ initialSolutions, initialError }: Props) {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
+    localStorage.setItem('ctx8_demo_prefill', q);
     navigate({ to: '/demo' });
   };
 
@@ -630,4 +631,3 @@ function ProductCard({
     </div>
   );
 }
-
