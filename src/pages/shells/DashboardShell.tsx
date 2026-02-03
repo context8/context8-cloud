@@ -182,7 +182,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <footer className="border-t border-default bg-surface">
+      <footer className="border-t border-default bg-[hsl(var(--dash-bg))]">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-foreground-light">
           <span>© {new Date().getFullYear()} Context8</span>
           <div className="flex flex-wrap items-center gap-4">
