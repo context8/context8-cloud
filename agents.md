@@ -280,3 +280,4 @@ tailwindcss + shadcn
 46. Dashboard UI chrome 统一使用 `AppShell hideChrome` + `DashboardShell`（侧边栏 + 顶栏 + Command Menu），不复用旧 `Layout`/顶部 tabs，避免“一堆特殊情况”。
 47. Dashboard 路由 query 约定：`/dashboard/solutions?create=1` 打开创建弹窗并会自动清理参数；`/dashboard/search?q=...` 用于 Command Menu/搜索页互通（路由使用 `validateSearch`，空 search 允许 `{}`）。
 48. `/login` 使用 `SignInShell` 并套用 `.appdash`，与 Dashboard 控件（`dash-input`/`DashButton`/`DashModal`）保持一致。
+49. 含 `backdrop-filter`/`filter`/`transform` 的 sticky header 内禁止嵌全屏 `position: fixed` overlay；overlay 必须作为 header 的兄弟节点（或 Portal）以确保 fixed 相对 viewport。
