@@ -1,0 +1,13 @@
+name = "context8-cloud"
+
+# Nitro output when building with `NITRO_PRESET=cloudflare-module`.
+main = ".output/server/index.mjs"
+
+# Keep in sync with Nitro's Cloudflare preset default if you customize it.
+compatibility_date = "2025-07-13"
+compatibility_flags = ["nodejs_compat", "no_nodejs_compat_v2"]
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
+

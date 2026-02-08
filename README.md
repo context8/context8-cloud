@@ -53,6 +53,29 @@ bun run start
 - 后端未配置 CORS：浏览器请求会被拦截（需要后端放行 Vercel 域名）
 - 想在本地模拟 Vercel 打包：可用 `VERCEL=1 bun run build`（用于触发 Nitro 的 `preset: vercel`）
 
+## 部署（Cloudflare Workers）
+
+本项目使用 Nitro 产出可部署到 Cloudflare Workers 的产物。
+
+### 1）配置环境变量
+- 在 Cloudflare Worker 的 Variables/Secrets 里添加：
+  - `VITE_API_BASE`：你的后端 base URL
+  - `NITRO_PRESET=cloudflare-module`：让构建产出 Workers 需要的 server 产物
+
+说明：`VITE_API_BASE` 属于 `VITE_` 前缀变量，会在构建期注入到前端 bundle；因此要确保它在 Cloudflare 的 build 环境中可见。
+
+### 2）Build / Deploy 命令（对应你截图的页面）
+- 构建命令：`bun run build`
+- 部署命令：`npx wrangler deploy`
+
+仓库根目录已提供 `wrangler.toml`（入口 `.output/server/index.mjs`，静态资源 `.output/public`）。
+
+### 3）本地验证（可选）
+```bash
+NITRO_PRESET=cloudflare-module bun run build
+npx wrangler deploy --dry-run
+```
+
 ## 后端依赖（高层 API 合约）
 前端至少依赖后端提供以下路由：
 

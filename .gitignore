@@ -9,4 +9,5 @@ dist/
 .tanstack/
 .vinxi/
 .vercel/
+.wrangler/
 /.idea/
