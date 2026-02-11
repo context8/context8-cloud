@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Plus, FileX, Search, X, LayoutGrid, List, Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronsUpDown } from 'lucide-react';
 import { SolutionCard } from '@/components/Dashboard/SolutionCard';
 import { SolutionListItem } from '@/components/Dashboard/SolutionListItem';
 import { SolutionCardSkeleton } from '@/components/Dashboard/SolutionCardSkeleton';
@@ -197,6 +197,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
 
   const hasActiveFilters = publicFilter !== 'all' || errorTypeFilter || searchQuery;
   const canUseVisibilityFilter = !(isSearchMode && !searchHasVisibility);
+  const filterSelectClass = 'h-10 sm:h-8 min-w-[170px] rounded-full border border-default bg-surface pl-4 pr-9 text-xs text-foreground transition-colors appearance-none hover:border-strong focus:outline-none focus:border-[hsl(var(--dash-brand)/0.45)] focus:ring-2 focus:ring-[hsl(var(--dash-ring)/0.22)]';
   const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
   const startItem = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
   const endItem = Math.min(pagination.page * pagination.pageSize, pagination.total);
@@ -282,30 +283,44 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
           })}
         </div>
 
-        <select
-          value={errorTypeFilter ?? ''}
-          onChange={(e) => setErrorTypeFilter(e.target.value || null)}
-          className="dash-input h-8 w-auto text-xs"
-        >
-          <option value="">All error types</option>
-          {errorTypeOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={errorTypeFilter ?? ''}
+            onChange={(e) => setErrorTypeFilter(e.target.value || null)}
+            className={filterSelectClass}
+          >
+            <option value="">All error types</option>
+            {errorTypeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronsUpDown
+            size={14}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground-light"
+            aria-hidden="true"
+          />
+        </div>
 
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="dash-input h-8 w-auto text-xs"
-        >
-          {sortOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={filterSelectClass}
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronsUpDown
+            size={14}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-foreground-light"
+            aria-hidden="true"
+          />
+        </div>
 
         <div className="flex-1" />
 
