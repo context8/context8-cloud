@@ -92,7 +92,6 @@ export const DemoChat: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [resetToken, setResetToken] = useState(0);
   const [prefill, setPrefill] = useState<string>('');
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -116,9 +115,15 @@ export const DemoChat: React.FC = () => {
     return 'No auth detected';
   }, [auth.apiKey, auth.token]);
 
+  const scrollChatToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+  };
+
   useEffect(() => {
     if (autoScroll) {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrollChatToBottom('smooth');
     }
   }, [messages, status, autoScroll]);
 
@@ -405,13 +410,13 @@ export const DemoChat: React.FC = () => {
                   ) : null}
                 </div>
               ))}
-              <div ref={chatEndRef} className="h-4" />
+              <div className="h-4" />
             </div>
 
             {showScrollToBottom ? (
               <button
                 type="button"
-                onClick={() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => scrollChatToBottom('smooth')}
                 className="sticky bottom-6 ml-auto mr-6 flex items-center gap-2 rounded-full border border-default bg-[hsl(var(--sb-bg)/0.75)] px-4 py-2 text-xs text-foreground hover:bg-[hsl(var(--sb-bg))]"
               >
                 Jump to latest
@@ -493,4 +498,3 @@ export const DemoChat: React.FC = () => {
     </div>
   );
 };
-
